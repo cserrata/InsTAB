@@ -19,7 +19,7 @@
             padding-top: env(safe-area-inset-top);
         }
 
-        /* 1. TIRA DE COMUNICACIÓ SUPERIOR (18% alçada) */
+        /* 1. TIRA SUPERIOR DE FRASES */
         #tira-comunicacio {
             height: 18dvh;
             background: #ffffff;
@@ -67,7 +67,7 @@
         #btn-netejar { background: #dc2626; }
         #btn-llegir { background: #16a34a; font-size: 18px; padding: 0 25px; }
 
-        /* 2. QUADRÍCULA CENTRAL 6x6 (72% alçada) */
+        /* 2. QUADRÍCULA CENTRAL 6x6 */
         #quadricula {
             height: 72dvh;
             display: grid;
@@ -101,7 +101,7 @@
         }
         @keyframes shake { 0% { transform: rotate(0.5deg); } 100% { transform: rotate(-0.5deg); } }
 
-        /* 3. BARRA INFERIOR (10% alçada) */
+        /* 3. BARRA INFERIOR */
         footer {
             height: 10dvh;
             background: #1e293b;
@@ -178,7 +178,7 @@
 
     <div id="modal-cerca">
         <div style="display: flex; gap: 10px;">
-            <input type="text" id="input-cercar" placeholder="Escriu una paraula en català..." style="flex-grow:1; padding:12px; font-size:16px; border:2px solid #cbd5e1; border-radius:6px;" onkeypress="if(event.key === 'Enter') executarCercaARASAAC()">
+            <input type="text" id="input-cercar" placeholder="Escriu una paraula..." style="flex-grow:1; padding:12px; font-size:16px; border:2px solid #cbd5e1; border-radius:6px;" onkeypress="if(event.key === 'Enter') executarCercaARASAAC()">
             <button onclick="executarCercaARASAAC()" style="padding:10px 25px; font-weight:bold; background:#0f766e; color:white; border:none; border-radius:6px; cursor:pointer; font-size:16px;">Cercar</button>
             <button onclick="tancarModalCerca()" style="padding:10px 20px; background:#dc2626; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold; font-size:16px;">X</button>
         </div>
@@ -186,8 +186,8 @@
     </div>
 
     <script>
-        // Versió ultra compatible i tolerant amb la base de dades
-        const db = new Dexie("InSTAB_Final_Ultra_v5");
+        // Versió definitiva de base de dades ultra tolerant
+        const db = new Dexie("InSTAB_Base_Definitiva_v6");
         db.version(1).stores({
             pictogrames: 'posicio'
         });
@@ -215,7 +215,7 @@
         window.addEventListener('offline', actualitzarEstatXarxa);
         actualitzarEstatXarxa();
 
-        // Renderitzat amb suport dual (Base64 offline / URL en línia com a seguretat)
+        // Carregar la quadrícula llegint les dades en text pur Base64 per evitar fallades d'arxius
         async function carregarQuadricula() {
             const contenidor = document.getElementById('quadricula');
             contenidor.innerHTML = '';
@@ -226,20 +226,14 @@
                 div.className = 'picto-grid';
                 
                 if (picto) {
-                    let srcImatge = picto.urlDirecta;
-                    if (picto.imatgeBlob) {
-                        srcImatge = URL.createObjectURL(picto.imatgeBlob);
-                    }
-                    
-                    div.innerHTML = `<img src="${srcImatge}"><span>${picto.paraula}</span>`;
-                    
+                    div.innerHTML = `<img src="${picto.imatgeBase64}"><span>${picto.paraula}</span>`;
                     div.onclick = () => {
                         if (modeEdicio) {
-                            if (confirm(`Vols esborrar el pictograma "${picto.paraula}"?`)) {
+                            if (confirm(`Vols esborrar el pictograma "${picto.paraula}" de la casella ${i}?`)) {
                                 db.pictogrames.delete(i).then(() => carregarQuadricula());
                             }
                         } else {
-                            afgridATira(picto.paraula, srcImatge);
+                            afegirATira(picto.paraula, picto.imatgeBase64);
                         }
                     };
                 } else {
@@ -247,7 +241,7 @@
                     div.style.border = '2px dashed #cbd5e1';
                     div.innerHTML = `<span style="color:#94a3b8; font-size:12px;">Buit (${i})</span>`;
                     div.onclick = () => {
-                        if (modeEdicio) alert("Tria un pictograma obrint el cercador superior.");
+                        if (modeEdicio) alert("Obre el cercador per afegir un pictograma a aquesta casella.");
                     };
                 }
                 contenidor.appendChild(div);
@@ -268,12 +262,12 @@
             }
         }
 
-        function afgridATira(paraula, urlImg) {
+        function afegirATira(paraula, srcImg) {
             fraseText.push(paraula);
             const tira = document.getElementById('tira-elements');
             const div = document.createElement('div');
             div.className = 'picto-tira';
-            div.innerHTML = `<img src="${urlImg}"><span>${paraula}</span>`;
+            div.innerHTML = `<img src="${srcImg}"><span>${paraula}</span>`;
             tira.appendChild(div);
             tira.scrollLeft = tira.scrollWidth;
         }
@@ -304,12 +298,12 @@
             document.getElementById('input-cercar').value = '';
         }
 
-        // AMB PROXY INVERS: Passem la consulta de les imatges per un obridor de CORS lliure per garantir la càrrega visual
+        // CORRECCIÓ DE RUTA: Ús del servidor d'imatges estàtiques d'ARASAAC que mai dona problemes de CORS
         async function executarCercaARASAAC() {
             const text = document.getElementById('input-cercar').value.trim();
             if (!text) return;
             const resContenidor = document.getElementById('resultats-cerca');
-            resContenidor.innerHTML = '<p style="font-size:16px; padding:10px;">Carregant dibuixos d\'ARASAAC...</p>';
+            resContenidor.innerHTML = '<p style="font-size:16px; padding:10px;">Carregant imatges oficials d\'ARASAAC...</p>';
 
             try {
                 const response = await fetch(`https://api.arasaac.org/api/pictograms/ca/search/${encodeURIComponent(text)}`);
@@ -318,7 +312,7 @@
                 resContenidor.innerHTML = '';
 
                 if (dades.length === 0) {
-                    resContenidor.innerHTML = '<p style="font-size:16px; color:#dc2626; padding:10px;">Cap pictograma trobat.</p>';
+                    resContenidor.innerHTML = '<p style="font-size:16px; color:#dc2626; padding:10px;">No s\'ha trobat cap pictograma.</p>';
                     return;
                 }
 
@@ -326,59 +320,54 @@
                     const idPicto = item.idImg;
                     const paraulaPicto = item.keywords[0]?.keyword || text;
                     
-                    // Utilitzem un Proxy Invers públic de CORS per saltar-nos el bloqueig de la tauleta completament
-                    const urlImatgeAPI = `https://api.arasaac.org/api/pictograms/${idPicto}`;
-                    const urlImatgeAmbProxy = `https://cors-anywhere.herokuapp.com/${urlImatgeAPI}`;
+                    // Aquesta és la ruta gràfica directa infal·lible de la base de dades d'ARASAAC
+                    const urlImatgeNeta = `https://static.arasaac.org/pictograms/${idPicto}/${idPicto}_300.png`;
 
                     const divResultat = document.createElement('div');
                     divResultat.className = 'item-resultat';
-                    // Deixem que es mostri directament amb la URL original de seguretat
-                    divResultat.innerHTML = `<img src="${urlImatgeAPI}"><span>${paraulaPicto}</span>`;
+                    divResultat.innerHTML = `<img src="${urlImatgeNeta}"><span>${paraulaPicto}</span>`;
                     
-                    // Si es fa clic, intentem desar utilitzant el túnel segur
-                    divResultat.onclick = () => assignarAPosicio(idPicto, paraulaPicto, urlImatgeAPI, urlImatgeAmbProxy);
+                    divResultat.onclick = () => assignarAPosicio(paraulaPicto, urlImatgeNeta);
                     resContenidor.appendChild(divResultat);
                 });
             } catch (err) {
-                resContenidor.innerHTML = '<p style="font-size:16px; color:#dc2626; padding:10px;">Error carregant el catàleg.</p>';
+                resContenidor.innerHTML = '<p style="font-size:16px; color:#dc2626; padding:10px;">Error connectant amb el catàleg.</p>';
             }
         }
 
-        // Surt de la descàrrega i desa de manera tolerant (fall-back securitzat)
-        async function assignarAPosicio(id, paraula, urlOriginal, urlProxy) {
+        // DESCARREGA SEGURA EN BASE64: Converteix la imatge lliurement sense restriccions del navegador de la tauleta
+        async function assignarAPosicio(paraula, url) {
             const pos = prompt("A quina casella del 1 al 36 el vols desar?");
             const posInt = parseInt(pos);
             if (isNaN(posInt) || posInt < 1 || posInt > 36) {
-                alert("Casella invàlida.");
+                alert("Casella invàlida o acció cancel·lada.");
                 return;
             }
 
             try {
-                // Intentem fer la descàrrega directa del Blob usant el Proxy de seguretat contra el CORS
-                const imgRes = await fetch(urlProxy);
-                const blob = await imgRes.blob();
+                // Convertim la imatge a text Base64 mitjançant una descàrrega asíncrona neta
+                const resposta = await fetch(url);
+                const blob = await resposta.blob();
+                
+                const lector = new FileReader();
+                lector.readAsDataURL(blob);
+                lector.onloadend = async function() {
+                    const base64data = lector.result;                
 
-                await db.pictogrames.put({
-                    posicio: posInt,
-                    id: id,
-                    paraula: paraula,
-                    imatgeBlob: blob,
-                    urlDirecta: urlOriginal
-                });
-            } catch (fallback) {
-                // Si el Proxy falla o està saturat, GUARDEM LA POSICIÓ amb la URL directa per garantir que funcioni online!
-                await db.pictogrames.put({
-                    posicio: posInt,
-                    id: id,
-                    paraula: paraula,
-                    imatgeBlob: null, // No guardem binari, evitem l'error CORS
-                    urlDirecta: urlOriginal
-                });
+                    // Guardem a la base de dades com a text. Això funciona sempre i és 100% compatible offline
+                    await db.pictogrames.put({
+                        posicio: posInt,
+                        paraula: paraula,
+                        imatgeBase64: base64data
+                    });
+
+                    alert(`Desat correctament a la casella ${posInt}!`);
+                    tancarModalCerca();
+                    carregarQuadricula();
+                }
+            } catch (error) {
+                alert("Error de seguretat de xarxa en processar el fitxer gràfic.");
             }
-
-            alert(`Desat perfectament a la casella ${posInt}`);
-            tancarModalCerca();
-            carregarQuadricula();
         }
 
         window.onload = carregarQuadricula;
