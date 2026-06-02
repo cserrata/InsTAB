@@ -92,8 +92,7 @@
         .picto-grid img { width: 100%; height: 75%; object-fit: contain; }
         .picto-grid span { font-size: 11px; font-weight: bold; margin-top: 2px; text-transform: uppercase; color: #1e293b; text-align: center; }
 
-        /* Mode Esborrar Actiu (Borde Vermell d'Alerta) */
-        .modo-borrar-activo .picto-grid {
+        .modo-esborrar-activo .picto-grid {
             border-color: #dc2626 !important;
             animation: shake 0.3s infinite alternate;
         }
@@ -172,7 +171,7 @@
     </div>
 
     <script>
-        // CRÍTIC: Inicialització immediata de la Base de Dades al capdamunt per evitar el ReferenceError
+        // Primer de tot declarem la base de dades globalment perquè cap funció falli
         const db = new Dexie("InSTAB_Graella_Fixada_v11");
         db.version(1).stores({
             pictogrames: 'posicio'
@@ -181,7 +180,7 @@
         let fraseText = [];
         let modeEsborrar = false;
 
-        // FUNCIONS DE LA GRAELLA
+        // DIBUIX I CARREGA DE LA GRAELLA
         async function carregarQuadricula() {
             const contenidor = document.getElementById('quadricula');
             if (!contenidor) return;
@@ -231,11 +230,11 @@
             if (modeEsborrar) {
                 boto.style.background = "#dc2626";
                 boto.innerText = "🛑 Aturar Esborrat";
-                quadricula.classList.add('modo-borrar-activo');
+                quadricula.classList.add('modo-esborrar-activo');
             } else {
                 boto.style.background = "#4b5563";
                 boto.innerText = "🗑️ Esborrar Caselles";
-                quadricula.classList.remove('modo-borrar-activo');
+                quadricula.classList.remove('modo-esborrar-activo');
             }
         }
 
@@ -334,7 +333,6 @@
             }
         }
 
-        // Execució inicial neta
         window.onload = carregarQuadricula;
     </script>
 </body>
