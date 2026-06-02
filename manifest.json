@@ -1,17 +1,20 @@
 {
-"short_name": "CAA Comunicador",
-"name": "Comunicador CAA Offline",
-"icons": [
-{
-"src": "icon.png",
-"type": "image/png",
-"sizes": "512x512",
-"purpose": "any maskable"
-}
-],
-"start_url": "./index.html",
-"background_color": "#1e293b",
-"theme_color": "#0f766e",
-"display": "standalone",
-"orientation": "landscape"
+  "short_name": "InSTAB",
+  "name": "InSTAB - Comunicador CAA",
+  "icons": [
+    {
+      "src": "/InsTAB/icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/InsTAB/icon.png.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/InsTAB/",
+  "background_color": "#1e293b",
+  "display": "standalone",
+  "theme_color": "#1e293b"
 }
