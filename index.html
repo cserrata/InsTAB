@@ -171,7 +171,7 @@
     </div>
 
     <script>
-        // Definim una base de dades local nova i tolerant
+        // Definim la base de dades globalment
         const db = new Dexie("InSTAB_Graella_Fixada_v11");
         db.version(1).stores({
             pictogrames: 'posicio'
@@ -180,7 +180,7 @@
         let fraseText = [];
         let modeEdicio = false;
 
-        // DIBUIX DE LA GRAELLA (Ultra-tolerant: Es pinta sempre immediatament)
+        // DIBUIX DE LA GRAELLA (Ara ultra-segura sense conflictes de càrrega)
         async function carregarQuadricula() {
             const contenidor = document.getElementById('quadricula');
             if (!contenidor) return;
@@ -191,7 +191,7 @@
                 div.className = 'picto-grid';
                 
                 try {
-                    // Intentem demanar a la base de dades si aquesta casella té algun pictograma guardat
+                    // Esperem demanar a la base de dades de forma segura
                     const picto = await db.pictogrames.get(i);
                     
                     if (picto && picto.idImg) {
@@ -207,11 +207,9 @@
                             }
                         };
                     } else {
-                        // Casella buida estàndard
                         forçarCasellaBuida(div, i);
                     }
                 } catch (e) {
-                    // Si Dexie fallés o trigués, la casella es pinta igualment buida en lloc de congelar la web
                     forçarCasellaBuida(div, i);
                 }
                 contenidor.appendChild(div);
@@ -336,8 +334,16 @@
             }
         }
 
-        // Executem immediatament en obrir la pàgina
-        window.onload = carregarQuadricula;
+        // AMB AIXÒ OBLIGUEM EL NAVEGADOR A ESPERAR QUE TOT EL JAVASCRIPT ESTIGUI LLEST
+        // I EVITEM EL "ReferenceError" DE MANERA DEFINITIVA.
+        document.addEventListener("DOMContentLoaded", () => {
+            db.open().then(() => {
+                carregarQuadricula();
+            }).catch(err => {
+                console.error("Error inicialitzant DB:", err);
+                carregarQuadricula(); // El llança igualment en cas d'emergència
+            });
+        });
     </script>
 </body>
 </html>
