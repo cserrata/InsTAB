@@ -11,15 +11,15 @@
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body {
             font-family: Arial, sans-serif;
-            height: 100dvh; /* Alçada dinàmica real de la tauleta */
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             background: #f1f5f9;
             overflow: hidden;
-            padding-top: env(safe-area-inset-top); /* Evita barres d'iOS/Android */
+            padding-top: env(safe-area-inset-top);
         }
 
-        /* 1. Tira de Comunicació Superior (18% Alçada) */
+        /* 1. TIRA DE COMUNICACIÓ SUPERIOR (18% alçada) */
         #tira-comunicacio {
             height: 18dvh;
             background: #ffffff;
@@ -67,7 +67,7 @@
         #btn-netejar { background: #dc2626; }
         #btn-llegir { background: #16a34a; font-size: 18px; padding: 0 25px; }
 
-        /* 2. Quadrícula Central 6x6 (72% Alçada) */
+        /* 2. QUADRÍCULA CENTRAL 6x6 (72% alçada) */
         #quadricula {
             height: 72dvh;
             display: grid;
@@ -92,16 +92,16 @@
         }
         .picto-grid:active { transform: scale(0.97); background: #f8fafc; }
         .picto-grid img { width: 100%; height: 75%; object-fit: contain; }
-        .picto-grid span { font-size: 12px; font-weight: bold; margin-top: 2px; text-transform: uppercase; color: #1e293b; }
+        .picto-grid span { font-size: 11px; font-weight: bold; margin-top: 2px; text-transform: uppercase; color: #1e293b; text-align: center; }
 
-        /* Indicador visual quan estem editant/esborrant caselles */
+        /* Efecte visual quan el mode edició està actiu */
         .modo-edicion-activo .picto-grid {
             border-color: #eab308 !important;
             animation: shake 0.3s infinite alternate;
         }
         @keyframes shake { 0% { transform: rotate(0.5deg); } 100% { transform: rotate(-0.5deg); } }
 
-        /* 3. Barra Inferior de Mòduls (10% Alçada) */
+        /* 3. BARRA INFERIOR DE CONTROL (10% alçada) */
         footer {
             height: 10dvh;
             background: #1e293b;
@@ -121,9 +121,9 @@
             cursor: pointer;
             background: #0f766e;
         }
-        .btn-footer:disabled { background: #475569; cursor: not-allowed; }
+        .btn-footer:disabled { background: #475569; cursor: not-allowed; opacity: 0.6; }
 
-        /* Finestra emergent de cerca (Modal) */
+        /* FINESTRA MODAL DE CERCA */
         #modal-cerca {
             display: none;
             position: fixed;
@@ -134,13 +134,28 @@
         }
         #resultats-cerca {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 12px;
             overflow-y: auto;
             margin-top: 15px;
             flex-grow: 1;
             padding: 5px;
         }
+        .item-resultat {
+            border: 2px solid #cbd5e1; 
+            padding: 8px; 
+            text-align: center; 
+            cursor: pointer; 
+            background: #ffffff; 
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .item-resultat:hover { border-color: #0f766e; background: #f0fdfa; }
+        .item-resultat img { width: 100%; height: 60px; object-fit: contain; }
+        .item-resultat span { font-size: 11px; font-weight: bold; margin-top: 4px; color: #334155; }
     </style>
 </head>
 <body>
@@ -149,8 +164,8 @@
         <div id="tira-elements"></div>
         <div class="controls-tira">
             <button id="btn-eliminar" class="btn-accio" onclick="esborrarUltim()">⌫</button>
-            <button id="btn-netejar" class="btn-accio" onclick="netejarTira()">Esborrar Tot</button>
-            <button id="btn-llegir" class="btn-accio" onclick="parlarTira()">🔊 Escuitar</button>
+            <button id="btn-netejar" class="btn-accio" onclick="netejarTira()">Netejar</button>
+            <button id="btn-llegir" class="btn-accio" onclick="parlarTira()">🔊 Escoltar</button>
         </div>
     </header>
 
@@ -158,44 +173,51 @@
 
     <footer>
         <button id="btn-obrir-cerca" class="btn-footer" onclick="obrirModalCerca()">🔍 Buscar Pictograma (Online)</button>
-        <button class="btn-footer" style="background: #4b5563;" onclick="alternarModeEdicio(this)">⚙️ Edició</button>
+        <button id="btn-toggle-edicio" class="btn-footer" style="background: #4b5563;" onclick="alternarModeEdicio(this)">⚙️ Edició</button>
     </footer>
 
     <div id="modal-cerca">
         <div style="display: flex; gap: 10px;">
-            <input type="text" id="input-cercar" placeholder="Escriu una paraula en català..." style="flex-grow:1; padding:10px; font-size:16px; border:2px solid #ccc; border-radius:6px;">
-            <button onclick="executarCercaARASAAC()" style="padding:10px 20px; font-weight:bold; background:#0f766e; color:white; border:none; border-radius:6px; cursor:pointer;">Cercar</button>
-            <button onclick="tancarModalCerca()" style="padding:10px 15px; background:#dc2626; color:white; border:none; border-radius:6px; cursor:pointer;">X</button>
+            <input type="text" id="input-cercar" placeholder="Escriu una paraula en català..." style="flex-grow:1; padding:12px; font-size:16px; border:2px solid #cbd5e1; border-radius:6px;" onkeypress="if(event.key === 'Enter') executarCercaARASAAC()">
+            <button onclick="executarCercaARASAAC()" style="padding:10px 25px; font-weight:bold; background:#0f766e; color:white; border:none; border-radius:6px; cursor:pointer; font-size:16px;">Cercar</button>
+            <button onclick="tancarModalCerca()" style="padding:10px 20px; background:#dc2626; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold; font-size:16px;">X</button>
         </div>
         <div id="resultats-cerca"></div>
     </div>
 
     <script>
-        // S'ha canviat el nom de la base de dades per forçar les tauletes a utilitzar la nova estructura neta
-        const db = new Dexie("InSTAB_DB_v3");
+        // Inicialitzem la base de dades Dexie en una versió definitiva neta de conflictes
+        const db = new Dexie("InSTAB_Final_DB");
         db.version(1).stores({
-            pictogrames: 'posicio' // Clau primària 'posicio' (1-36) per poder sobrescriure i esborrar fàcilment
+            pictogrames: 'posicio' // 'posicio' (número de l'1 al 36) serà la clau primària per permetre edició i reemplaçament
         });
 
         let fraseText = [];
         let modeEdicio = false;
 
-        // Activar Service Worker per al mode Offline
+        // Connexió del Service Worker per a suport fora de línia
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js').catch(err => console.error(err));
             });
         }
 
-        // Control de connexió a internet per bloquejar o activar el botó de l'API d'ARASAAC
+        // Monitorització d'estat d'internet per al cercador API
         function actualitzarEstatXarxa() {
-            document.getElementById('btn-obrir-cerca').disabled = !navigator.onLine;
+            const btnCerca = document.getElementById('btn-obrir-cerca');
+            if (navigator.onLine) {
+                btnCerca.disabled = false;
+                btnCerca.innerText = "🔍 Buscar Pictograma (Online)";
+            } else {
+                btnCerca.disabled = true;
+                btnCerca.innerText = "🔒 Cercador bloquejat (Offline)";
+            }
         }
         window.addEventListener('online', actualitzarEstatXarxa);
         window.addEventListener('offline', actualitzarEstatXarxa);
         actualitzarEstatXarxa();
 
-        // Dibuixar la quadrícula a la pantalla llegint Dexie
+        // Renderitzar la graella de 36 caselles llegint des de la Base de Dades local
         async function carregarQuadricula() {
             const contenidor = document.getElementById('quadricula');
             contenidor.innerHTML = '';
@@ -206,6 +228,7 @@
                 div.className = 'picto-grid';
                 
                 if (picto) {
+                    // Creem una URL local temporal des de la imatge guardada com a BLOB binari
                     const urlImatgeLocal = URL.createObjectURL(picto.imatgeBlob);
                     div.innerHTML = `<img src="${urlImatgeLocal}"><span>${picto.paraula}</span>`;
                     
@@ -219,19 +242,22 @@
                         }
                     };
                 } else {
+                    // Disseny d'una casella completament buida disponible
                     div.style.background = '#f8fafc';
                     div.style.border = '2px dashed #cbd5e1';
-                    div.innerHTML = `<span style="color:#94a3b8; font-size:11px;">Buit (${i})</span>`;
+                    div.innerHTML = `<span style="color:#94a3b8; font-size:12px;">Buit (${i})</span>`;
                     
                     div.onclick = () => {
-                        if (modeEdicio) alert(`Aquesta casella està buida. Obre el cercador d'ARASAAC per afegir-ne un aquí.`);
+                        if (modeEdicio) {
+                            alert(`Aquesta casella està lliure. Fes clic a 'Buscar Pictograma' per assignar-n'hi un.`);
+                        }
                     };
                 }
                 contenidor.appendChild(div);
             }
         }
 
-        // Activar/Desactivar el mode eliminar caselles
+        // Control del commutador de mode edició (Activa el tremolor visual)
         function alternarModeEdicio(boto) {
             modeEdicio = !modeEdicio;
             const quadricula = document.getElementById('quadricula');
@@ -253,7 +279,7 @@
             div.className = 'picto-tira';
             div.innerHTML = `<img src="${urlImg}"><span>${paraula}</span>`;
             tira.appendChild(div);
-            tira.scrollLeft = tira.scrollWidth;
+            tira.scrollLeft = tira.scrollWidth; // Auto-scroll cap a la dreta si s'omple
         }
 
         function esborrarUltim() {
@@ -271,25 +297,35 @@
             if (fraseText.length === 0) return;
             const textFrase = fraseText.join(" ");
             const tts = new SpeechSynthesisUtterance(textFrase);
-            tts.lang = 'ca-ES';
+            tts.lang = 'ca-ES'; // Motor de veu en català nativa del sistema mòbil
             window.speechSynthesis.speak(tts);
         }
 
         function obrirModalCerca() { document.getElementById('modal-cerca').style.display = 'flex'; }
-        function tancarModalCerca() { document.getElementById('modal-cerca').style.display = 'none'; }
+        function tancarModalCerca() { 
+            document.getElementById('modal-cerca').style.display = 'none'; 
+            document.getElementById('resultats-cerca').innerHTML = '';
+            document.getElementById('input-cercar').value = '';
+        }
 
-        // Connexió amb ARASAAC (només online)
+        // Consulta de l'API oficial d'ARASAAC utilitzant enllaç global segur HTTPS
         async function executarCercaARASAAC() {
             const text = document.getElementById('input-cercar').value.trim();
             if (!text) return;
             const resContenidor = document.getElementById('resultats-cerca');
-            resContenidor.innerHTML = 'Cercant a ARASAAC...';
+            resContenidor.innerHTML = '<p style="font-size:16px; padding:10px;">Cercant pictogrames oficials a ARASAAC...</p>';
 
             try {
-                const response = await fetch(`https://api.arasaac.org/api/pictograms/ca/search/${text}`);
+                // IMPORTANT: Crida realitzada en HTTPS (Segura) per evitar bloquejos del navegador
+                const response = await fetch(`https://api.arasaac.org/api/pictograms/ca/search/${encodeURIComponent(text)}`);
                 if (!response.ok) throw new Error();
                 const dades = await response.json();
                 resContenidor.innerHTML = '';
+
+                if (dades.length === 0) {
+                    resContenidor.innerHTML = '<p style="font-size:16px; color:#dc2626; padding:10px;">No s\'ha trobat cap pictograma amb aquesta paraula.</p>';
+                    return;
+                }
 
                 dades.forEach(item => {
                     const idPicto = item.idImg;
@@ -297,31 +333,32 @@
                     const urlImatgeAPI = `https://api.arasaac.org/api/pictograms/${idPicto}`;
 
                     const divResultat = document.createElement('div');
-                    divResultat.style = "border:1px solid #cbd5e1; padding:5px; text-align:center; cursor:pointer; background:#ffffff; border-radius:6px;";
-                    divResultat.innerHTML = `<img src="${urlImatgeAPI}" style="width:100%; height:50px; object-fit:contain;"><br><span style="font-size:10px; font-weight:bold;">${paraulaPicto}</span>`;
+                    divResultat.className = 'item-resultat';
+                    divResultat.innerHTML = `<img src="${urlImatgeAPI}"><span>${paraulaPicto}</span>`;
                     
                     divResultat.onclick = () => assignarAPosicio(idPicto, paraulaPicto, urlImatgeAPI);
                     resContenidor.appendChild(divResultat);
                 });
             } catch (err) {
-                resContenidor.innerHTML = 'No s\'han trobat resultats.';
+                resContenidor.innerHTML = '<p style="font-size:16px; color:#dc2626; padding:10px;">Error de connexió o paraula no trobada.</p>';
             }
         }
 
-        // Assignar el pictograma triat i descarregar la imatge a la Base de Dades local (Blob)
+        // Descarrega el pictograma triat, el converteix a fitxer BLOB i el desa a la memòria física permanent de la tablet
         async function assignarAPosicio(id, paraula, url) {
-            const pos = prompt("A quina posició de la quadrícula el vols desar? (Tria un número del 1 al 36):");
+            const pos = prompt("A quina casella de la quadrícula el vols desar? (Escriu un número del 1 al 36):");
             const posInt = parseInt(pos);
             if (isNaN(posInt) || posInt < 1 || posInt > 36) {
-                alert("Posició invàlida. Escriu un número de l'1 al 36.");
+                alert("S'ha cancel·lat o has introduït una casella incorrecta (ha de ser del 1 al 36).");
                 return;
             }
 
             try {
+                // Descarreguem els bits de la imatge de l'API externa
                 const imgRes = await fetch(url);
                 const blob = await imgRes.blob();
 
-                // En utilitzar '.put()', si la casella ja té un pictograma, el sobreescriu automàticament
+                // .put() s'encarrega d'escriure a Dexie de forma directa. Si la posició ja existia, la sobreescriu!
                 await db.pictogrames.put({
                     posicio: posInt,
                     id: id,
@@ -329,14 +366,15 @@
                     imatgeBlob: blob
                 });
 
-                alert(`Casella ${posInt} guardada correctament.`);
+                alert(`Èxit! Pictograma guardat correctament a la casella número ${posInt}.`);
                 tancarModalCerca();
-                carregarQuadricula();
+                carregarQuadricula(); // Recorrem i repintem la graella actualitzada a l'instant
             } catch (error) {
-                alert("Error desant el fitxer de la imatge localment.");
+                alert("Error crític descarregant i desant la imatge localment.");
             }
         }
 
+        // Execució inicial en obrir l'aplicació
         window.onload = carregarQuadricula;
     </script>
 </body>
