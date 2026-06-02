@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>InSTAB - CAA</title>
     
-    <script src="./dexie.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/3.2.4/dexie.min.js"></script>
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
@@ -171,58 +171,52 @@
     </div>
 
     <script>
-        // Inicialització global de Dexie
-        const db = new Dexie("InSTAB_Graella_Fixada_v11");
-        db.version(1).stores({
-            pictogrames: 'posicio'
-        });
+        // SOLUCIÓ: Utilitzem 'var' per evitar bloquejos i errors d'inicialització en cascada
+        var db;
+        try {
+            db = new Dexie("InSTAB_Graella_Fixada_v11");
+            db.version(1).stores({
+                pictogrames: 'posicio'
+            });
+        } catch (err) {
+            console.error("Error inicialitzant Dexie:", err);
+        }
 
         let fraseText = [];
         let modeEdicio = false;
 
-        // DIBUIX DE LA GRAELLA (Ara és 100% immune als errors de Dexie)
+        // DIBUIX DE LA GRAELLA (Sempre es dibuixa la quadrícula passi el que passi)
         async function carregarQuadricula() {
             const contenidor = document.getElementById('quadricula');
             if (!contenidor) return;
             contenidor.innerHTML = '';
             
-            let totsElsPictos = [];
-            
-            try {
-                // Intentem agafar tots els elements de la base de dades de cop
-                totsElsPictos = await db.pictogrames.toArray();
-            } catch (e) {
-                // Si Dexie fallés o donés un ReferenceError, no tallem la funció.
-                // Es queda la llista buida i forcem que es pinti la quadrícula igualment!
-                console.error("Dexie no inicialitzat encara, forçant graella buida de seguretat.", e);
-            }
-
-            // Convertim la llista en un mapa ràpid per trobar-los fàcilment per posició
-            const mapaPictos = {};
-            totsElsPictos.forEach(p => { mapaPictos[p.posicio] = p; });
-            
             for (let i = 1; i <= 36; i++) {
                 const div = document.createElement('div');
                 div.className = 'picto-grid';
                 
-                const picto = mapaPictos[i];
-                
-                if (picto && picto.idImg) {
-                    const urlImatge = `https://static.arasaac.org/pictograms/${picto.idImg}/${picto.idImg}_300.png`;
-                    div.innerHTML = `<img src="${urlImatge}"><span>${picto.paraula}</span>`;
-                    div.onclick = () => {
-                        if (modeEdicio) {
-                            if (confirm(`Esborrar casella ${i}?`)) {
-                                db.pictogrames.delete(i).then(() => carregarQuadricula());
-                            }
-                        } else {
-                            afegirATira(picto.paraula, urlImatge);
-                        }
-                    };
-                } else {
-                    forçarCasellaBuida(div, i);
-                }
+                // Pintem immediatament la casella com a buida per seguretat
+                forçarCasellaBuida(div, i);
                 contenidor.appendChild(div);
+
+                // Si la base de dades s'ha carregat correctament, busquem si té dibuix d'ARASAAC
+                if (db) {
+                    db.pictogrames.get(i).then(picto => {
+                        if (picto && picto.idImg) {
+                            const urlImatge = `https://static.arasaac.org/pictograms/${picto.idImg}/${picto.idImg}_300.png`;
+                            div.innerHTML = `<img src="${urlImatge}"><span>${picto.paraula}</span>`;
+                            div.onclick = () => {
+                                if (modeEdicio) {
+                                    if (confirm(`Esborrar casella ${i}?`)) {
+                                        db.pictogrames.delete(i).then(() => carregarQuadricula());
+                                    }
+                                } else {
+                                    afegirATira(picto.paraula, urlImatge);
+                                }
+                            };
+                        }
+                    }).catch(e => console.log("Casella buida asíncrona"));
+                }
             }
         }
 
@@ -328,6 +322,12 @@
                 return;
             }
 
+            // Control de seguretat informatiu
+            if (!db) {
+                alert("La llibreria Dexie no s'ha pogut carregar des d'Internet. Comprova la teva connexió.");
+                return;
+            }
+
             try {
                 await db.pictogrames.put({
                     posicio: posInt,
@@ -344,8 +344,8 @@
             }
         }
 
-        // Execució immediata i segura de la quadrícula quan el codi HTML està a punt
-        document.addEventListener("DOMContentLoaded", carregarQuadricula);
+        // Execució immediata de la quadrícula
+        window.onload = carregarQuadricula;
     </script>
 </body>
 </html>
