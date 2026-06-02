@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>InSTAB - Comunicador CAA</title>
+    <title>InSTAB - CAA</title>
     
-    <script src="./dexie.min.js"></script>
+    <script src="https://unpkg.com/dexie@3.2.4/dist/dexie.min.js"></script>
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
@@ -19,7 +19,7 @@
             padding-top: env(safe-area-inset-top);
         }
 
-        /* TIRA DE COMUNICACIÓ SUPERIOR (18dvh) */
+        /* 1. TIRA SUPERIOR */
         #tira-comunicacio {
             height: 18dvh;
             background: #ffffff;
@@ -67,7 +67,7 @@
         #btn-netejar { background: #dc2626; }
         #btn-llegir { background: #16a34a; font-size: 18px; padding: 0 25px; }
 
-        /* QUADRÍCULA CENTRAL 6x6 (72dvh) */
+        /* 2. QUADRÍCULA PRINCIPAL */
         #quadricula {
             height: 72dvh;
             display: grid;
@@ -88,20 +88,17 @@
             cursor: pointer;
             padding: 4px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            position: relative;
         }
-        .picto-grid:active { transform: scale(0.97); background: #f8fafc; }
         .picto-grid img { width: 100%; height: 75%; object-fit: contain; }
         .picto-grid span { font-size: 11px; font-weight: bold; margin-top: 2px; text-transform: uppercase; color: #1e293b; text-align: center; }
 
-        /* Efecte visual en mode edició */
         .modo-edicion-activo .picto-grid {
             border-color: #eab308 !important;
             animation: shake 0.3s infinite alternate;
         }
         @keyframes shake { 0% { transform: rotate(0.5deg); } 100% { transform: rotate(-0.5deg); } }
 
-        /* BARRA INFERIOR (10dvh) */
+        /* 3. FOOTER */
         footer {
             height: 10dvh;
             background: #1e293b;
@@ -122,14 +119,13 @@
             background: #0f766e;
         }
 
-        /* FINESTRA MODAL DE CERCA */
+        /* MODAL */
         #modal-cerca {
             display: none;
             position: fixed;
             top: 5%; left: 5%; width: 90%; height: 90%;
             background: white; border: 3px solid #1e293b; border-radius: 12px;
             z-index: 100; padding: 20px; flex-direction: column;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
         #resultats-cerca {
             display: grid;
@@ -138,23 +134,13 @@
             overflow-y: auto;
             margin-top: 15px;
             flex-grow: 1;
-            padding: 5px;
         }
         .item-resultat {
-            border: 2px solid #cbd5e1; 
-            padding: 8px; 
-            text-align: center; 
-            cursor: pointer; 
-            background: #ffffff; 
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            border: 2px solid #cbd5e1; padding: 8px; text-align: center; cursor: pointer; background: white; border-radius: 8px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        .item-resultat:hover { border-color: #0f766e; background: #f0fdfa; }
         .item-resultat img { width: 100%; height: 60px; object-fit: contain; }
-        .item-resultat span { font-size: 11px; font-weight: bold; margin-top: 4px; color: #334155; }
+        .item-resultat span { font-size: 11px; font-weight: bold; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -177,16 +163,16 @@
 
     <div id="modal-cerca">
         <div style="display: flex; gap: 10px;">
-            <input type="text" id="input-cercar" placeholder="Escriu una paraula a cercar..." style="flex-grow:1; padding:12px; font-size:16px; border:2px solid #cbd5e1; border-radius:6px;" onkeypress="if(event.key === 'Enter') executarCercaARASAAC()">
-            <button onclick="executarCercaARASAAC()" style="padding:10px 25px; font-weight:bold; background:#0f766e; color:white; border:none; border-radius:6px; cursor:pointer; font-size:16px;">Cercar</button>
-            <button onclick="tancarModalCerca()" style="padding:10px 20px; background:#dc2626; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold; font-size:16px;">X</button>
+            <input type="text" id="input-cercar" placeholder="Escriu..." style="flex-grow:1; padding:12px; font-size:16px;" onkeypress="if(event.key === 'Enter') executarCercaARASAAC()">
+            <button onclick="executarCercaARASAAC()" style="padding:10px 25px; background:#0f766e; color:white; font-weight:bold;">Cercar</button>
+            <button onclick="tancarModalCerca()" style="padding:10px 20px; background:#dc2626; color:white;">X</button>
         </div>
         <div id="resultats-cerca"></div>
     </div>
 
     <script>
-        // Canviem el nom de la base de dades a la V8 definitiva per trencar la memòria cau antiga
-        const db = new Dexie("InSTAB_Base_Neta_v8");
+        // Forcem un nom de base de dades completament nou (v10) per evitar qualsevol bloqueig de memòria anterior
+        const db = new Dexie("InSTAB_Forcat_v10");
         db.version(1).stores({
             pictogrames: 'posicio'
         });
@@ -194,44 +180,40 @@
         let fraseText = [];
         let modeEdicio = false;
 
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.error(err));
-            });
-        }
-
-        // Carregar la quadrícula generant les imatges estàtiques directament pel seu ID
         async function carregarQuadricula() {
             const contenidor = document.getElementById('quadricula');
             contenidor.innerHTML = '';
             
             for (let i = 1; i <= 36; i++) {
-                const picto = await db.pictogrames.get(i);
-                const div = document.createElement('div');
-                div.className = 'picto-grid';
-                
-                if (picto) {
-                    const urlImatge = `https://static.arasaac.org/pictograms/${picto.idImg}/${picto.idImg}_300.png`;
-                    div.innerHTML = `<img src="${urlImatge}"><span>${picto.paraula}</span>`;
+                try {
+                    const picto = await db.pictogrames.get(i);
+                    const div = document.createElement('div');
+                    div.className = 'picto-grid';
                     
-                    div.onclick = () => {
-                        if (modeEdicio) {
-                            if (confirm(`Vols esborrar el pictograma "${picto.paraula}" de la casella ${i}?`)) {
-                                db.pictogrames.delete(i).then(() => carregarQuadricula());
+                    if (picto && picto.idImg) {
+                        const urlImatge = `https://static.arasaac.org/pictograms/${picto.idImg}/${picto.idImg}_300.png`;
+                        div.innerHTML = `<img src="${urlImatge}"><span>${picto.paraula}</span>`;
+                        div.onclick = () => {
+                            if (modeEdicio) {
+                                if (confirm(`Esborrar casella ${i}?`)) {
+                                    db.pictogrames.delete(i).then(() => carregarQuadricula());
+                                }
+                            } else {
+                                afegirATira(picto.paraula, urlImatge);
                             }
-                        } else {
-                            afegirATira(picto.paraula, urlImatge);
-                        }
-                    };
-                } else {
-                    div.style.background = '#f8fafc';
-                    div.style.border = '2px dashed #cbd5e1';
-                    div.innerHTML = `<span style="color:#94a3b8; font-size:12px;">Buit (${i})</span>`;
-                    div.onclick = () => {
-                        if (modeEdicio) alert("Obre el cercador inferior per assignar un pictograma.");
-                    };
+                        };
+                    } else {
+                        div.style.background = '#f8fafc';
+                        div.style.border = '2px dashed #cbd5e1';
+                        div.innerHTML = `<span style="color:#94a3b8; font-size:12px;">Buit (${i})</span>`;
+                        div.onclick = () => {
+                            if (modeEdicio) alert("Obre el cercador per afegir un pictograma.");
+                        };
+                    }
+                    contenidor.appendChild(div);
+                } catch (e) {
+                    console.error("Error llegint casella:", i, e);
                 }
-                contenidor.appendChild(div);
             }
         }
 
@@ -256,7 +238,6 @@
             div.className = 'picto-tira';
             div.innerHTML = `<img src="${srcImg}"><span>${paraula}</span>`;
             tira.appendChild(div);
-            tira.scrollLeft = tira.scrollWidth;
         }
 
         function esborrarUltim() {
@@ -272,8 +253,7 @@
 
         function parlarTira() {
             if (fraseText.length === 0) return;
-            const textFrase = fraseText.join(" ");
-            const tts = new SpeechSynthesisUtterance(textFrase);
+            const tts = new SpeechSynthesisUtterance(fraseText.join(" "));
             tts.lang = 'ca-ES';
             window.speechSynthesis.speak(tts);
         }
@@ -289,22 +269,25 @@
             const text = document.getElementById('input-cercar').value.trim();
             if (!text) return;
             const resContenidor = document.getElementById('resultats-cerca');
-            resContenidor.innerHTML = '<p style="font-size:16px; padding:10px;">Cercant a la base de dades d\'ARASAAC...</p>';
+            resContenidor.innerHTML = '<p style="padding:10px;">Cercant...</p>';
 
             try {
                 const response = await fetch(`https://api.arasaac.org/api/pictograms/ca/search/${encodeURIComponent(text)}`);
-                if (!response.ok) throw new Error();
                 const dades = await response.json();
                 resContenidor.innerHTML = '';
 
-                if (dades.length === 0) {
-                    resContenidor.innerHTML = '<p style="font-size:16px; color:#dc2626; padding:10px;">Cap resultat trobat.</p>';
+                if (!dades || dades.length === 0) {
+                    resContenidor.innerHTML = '<p style="padding:10px; color:red;">Cap resultat.</p>';
                     return;
                 }
 
                 dades.forEach(item => {
-                    const idPicto = item._id; 
-                    const paraulaPicto = item.keywords[0]?.keyword || text;
+                    // EXTRACCIÓ SEGURA DE L'ID GRÀFIC: Múltiples alternatives per si canvia el JSON de l'API
+                    const idPicto = item._id || item.idImg || item.id;
+                    const paraulaPicto = item.keywords && item.keywords[0] ? item.keywords[0].keyword : text;
+                    
+                    if (!idPicto) return; // Si no hi ha ID, ens el saltem
+
                     const urlVisual = `https://static.arasaac.org/pictograms/${idPicto}/${idPicto}_300.png`;
 
                     const divResultat = document.createElement('div');
@@ -315,33 +298,41 @@
                     resContenidor.appendChild(divResultat);
                 });
             } catch (err) {
-                resContenidor.innerHTML = '<p style="font-size:16px; color:#dc2626; padding:10px;">Error carregant dades. Revisa la connexió.</p>';
+                resContenidor.innerHTML = '<p style="padding:10px; color:red;">Error de connexió.</p>';
             }
         }
 
-        // CONTROL DE DESAT CRÍTIC: Amb rastreig d'errors actiu
+        // ESCRIPTURA ASÍNCRONA CORREGIDA
         async function assignarAPosicio(idImg, paraula) {
             const pos = prompt("A quina casella del 1 al 36 el vols desar?");
-            const posInt = parseInt(pos);
+            const posInt = parseInt(pos, 10);
+            
             if (isNaN(posInt) || posInt < 1 || posInt > 36) {
-                alert("Casella invàlida o acció cancel·lada.");
+                alert("Número de casella incorrecte.");
                 return;
             }
 
-            // Obliguem que l'escriptura es completi i es verifiqui abans de tancar
-            db.pictogrames.put({
-                posicio: posInt,
-                paraula: paraula,
-                idImg: idImg
-            }).then(() => {
-                // Si s'ha guardat bé, es llança això:
-                alert(`Desat perfectament a la casella ${posInt}!`);
+            // Diagnòstic visible: mirem exactament què estem enviant a IndexedDB
+            console.log("Intentant desar:", { posicio: posInt, paraula: paraula, idImg: idImg });
+
+            try {
+                // Utilitzem l'escriptura directa i esperem que Dexie ens confirmi que s'ha desat físicament
+                await db.pictogrames.put({
+                    posicio: posInt,
+                    paraula: String(paraula),
+                    idImg: String(idImg) // Ens assegurem que l'ID es guarda net com un text indexable
+                });
+
+                alert(`S'ha guardat correctament a la casella ${posInt}`);
                 tancarModalCerca();
-                carregarQuadricula();
-            }).catch((err) => {
-                // Si hi hagués cap problema amb la base de dades de la tauleta, sortiria aquest avís:
-                alert("Error de la base de dades local: " + err);
-            });
+                
+                // Forcem la recàrrega de la interfície gràfica
+                await carregarQuadricula();
+                
+            } catch (error) {
+                alert("Error crític guardant en memòria: " + error);
+                console.error(error);
+            }
         }
 
         window.onload = carregarQuadricula;
