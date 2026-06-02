@@ -92,8 +92,9 @@
         .picto-grid img { width: 100%; height: 75%; object-fit: contain; }
         .picto-grid span { font-size: 11px; font-weight: bold; margin-top: 2px; text-transform: uppercase; color: #1e293b; text-align: center; }
 
-        .modo-edicion-activo .picto-grid {
-            border-color: #eab308 !important;
+        /* Mode Esborrar Actiu */
+        .modo-borrar-activo .picto-grid {
+            border-color: #dc2626 !important;
             animation: shake 0.3s infinite alternate;
         }
         @keyframes shake { 0% { transform: rotate(0.5deg); } 100% { transform: rotate(-0.5deg); } }
@@ -158,7 +159,7 @@
 
     <footer>
         <button id="btn-obrir-cerca" class="btn-footer" onclick="obrirModalCerca()">🔍 Buscar Pictograma (Online)</button>
-        <button id="btn-toggle-edicio" class="btn-footer" style="background: #4b5563;" onclick="alternarModeEdicio(this)">⚙️ Edició</button>
+        <button id="btn-toggle-esborrar" class="btn-footer" style="background: #4b5563;" onclick="alternarModeEsborrar(this)">🗑️ Esborrar Caselles</button>
     </footer>
 
     <div id="modal-cerca">
@@ -171,16 +172,15 @@
     </div>
 
     <script>
-        // Definim una base de dades local nova i tolerant
-        const db = new Dexie("InSTAB_Graella_Fixada_v11");
+        // Tornem a la versió v10 que t'havia funcionat impecable en la prova del "Bingo"
+        const db = new Dexie("InSTAB_Forcat_v10");
         db.version(1).stores({
             pictogrames: 'posicio'
         });
 
         let fraseText = [];
-        let modeEdicio = false;
+        let modeEsborrar = false;
 
-        // DIBUIX DE LA GRAELLA (Ultra-tolerant: Es pinta sempre immediatament)
         async function carregarQuadricula() {
             const contenidor = document.getElementById('quadricula');
             if (!contenidor) return;
@@ -191,15 +191,14 @@
                 div.className = 'picto-grid';
                 
                 try {
-                    // Intentem demanar a la base de dades si aquesta casella té algun pictograma guardat
                     const picto = await db.pictogrames.get(i);
                     
                     if (picto && picto.idImg) {
                         const urlImatge = `https://static.arasaac.org/pictograms/${picto.idImg}/${picto.idImg}_300.png`;
                         div.innerHTML = `<img src="${urlImatge}"><span>${picto.paraula}</span>`;
                         div.onclick = () => {
-                            if (modeEdicio) {
-                                if (confirm(`Esborrar casella ${i}?`)) {
+                            if (modeEsborrar) {
+                                if (confirm(`Vols esborrar la casella ${i}?`)) {
                                     db.pictogrames.delete(i).then(() => carregarQuadricula());
                                 }
                             } else {
@@ -207,11 +206,9 @@
                             }
                         };
                     } else {
-                        // Casella buida estàndard
                         forçarCasellaBuida(div, i);
                     }
                 } catch (e) {
-                    // Si Dexie fallés o trigués, la casella es pinta igualment buida en lloc de congelar la web
                     forçarCasellaBuida(div, i);
                 }
                 contenidor.appendChild(div);
@@ -223,21 +220,21 @@
             div.style.border = '2px dashed #cbd5e1';
             div.innerHTML = `<span style="color:#94a3b8; font-size:12px;">Buit (${i})</span>`;
             div.onclick = () => {
-                if (modeEdicio) alert("Obre el cercador inferior per assignar un pictograma a aquesta casella.");
+                if (modeEsborrar) alert("Aquesta casella ja està buida.");
             };
         }
 
-        function alternarModeEdicio(boto) {
-            modeEdicio = !modeEdicio;
+        function alternarModeEsborrar(boto) {
+            modeEsborrar = !modeEsborrar;
             const quadricula = document.getElementById('quadricula');
-            if (modeEdicio) {
-                boto.style.background = "#eab308";
-                boto.innerText = "💥 Sortir d'Edició";
-                quadricula.classList.add('modo-edicion-activo');
+            if (modeEsborrar) {
+                boto.style.background = "#dc2626";
+                boto.innerText = "🛑 Aturar Esborrat";
+                quadricula.classList.add('modo-borrar-activo');
             } else {
                 boto.style.background = "#4b5563";
-                boto.innerText = "⚙️ Edició";
-                quadricula.classList.remove('modo-edicion-activo');
+                boto.innerText = "🗑️ Esborrar Caselles";
+                quadricula.classList.remove('modo-borrar-activo');
             }
         }
 
@@ -336,7 +333,6 @@
             }
         }
 
-        // Executem immediatament en obrir la pàgina
         window.onload = carregarQuadricula;
     </script>
 </body>
