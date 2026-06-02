@@ -2,96 +2,342 @@
 <html lang="ca">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comunicador CAA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>InSTAB - Comunicador CAA</title>
+    
+    <script src="./dexie.min.js"></script>
+
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; height: 100vh; display: flex; flex-direction: column; background: #f4f4f9; }
-        
-        /* Tira de comunicació superior */
-        #tira-comunicacio { height: 20vh; background: #fff; border-bottom: 3px solid #ccc; display: flex; align-items: center; padding: 10px; gap: 10px; overflow-x: auto; }
-        .picto-tira { width: 80px; height: 80px; border: 1px solid #ddd; text-align: center; font-size: 12px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body {
+            font-family: Arial, sans-serif;
+            height: 100dvh; /* Alçada dinàmica real de la tauleta */
+            display: flex;
+            flex-direction: column;
+            background: #f1f5f9;
+            overflow: hidden;
+            padding-top: env(safe-area-inset-top); /* Evita barres d'iOS/Android */
+        }
+
+        /* 1. Tira de Comunicació Superior (18% Alçada) */
+        #tira-comunicacio {
+            height: 18dvh;
+            background: #ffffff;
+            border-bottom: 4px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            padding: 8px 15px;
+            gap: 12px;
+        }
+        #tira-elements {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            flex-grow: 1;
+            height: 100%;
+            align-items: center;
+        }
+        .picto-tira {
+            width: 80px;
+            height: 80px;
+            background: #f8fafc;
+            border: 2px solid #94a3b8;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+        }
         .picto-tira img { width: 100%; height: 70%; object-fit: contain; }
-        
-        /* Botons d'acció de la tira */
-        .controls-tira { margin-left: auto; display: flex; gap: 10px; }
-        button { padding: 15px 20px; font-size: 16px; cursor: pointer; border-radius: 8px; border: none; background: #007bff; color: white; }
-        button#btn-llegir { background: #28a745; font-weight: bold; }
+        .picto-tira span { font-size: 9px; font-weight: bold; margin-top: 2px; text-transform: uppercase; }
 
-        /* Quadrícula 6x6 */
-        #quadricula { display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(6, 1fr); gap: 8px; padding: 10px; flex-grow: 1; }
-        .picto-grid { background: white; border: 2px solid #bbb; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; text-align: center; padding: 5px; }
-        .picto-grid img { width: 70%; height: 70%; object-fit: contain; }
+        .controls-tira { display: flex; gap: 8px; height: 90%; align-items: center; }
+        .btn-accio {
+            padding: 0 15px;
+            height: 100%;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 8px;
+            border: none;
+            color: white;
+        }
+        #btn-eliminar { background: #ea580c; }
+        #btn-netejar { background: #dc2626; }
+        #btn-llegir { background: #16a34a; font-size: 18px; padding: 0 25px; }
 
-        /* Barra inferior */
-        footer { height: 10vh; background: #ddd; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
+        /* 2. Quadrícula Central 6x6 (72% Alçada) */
+        #quadricula {
+            height: 72dvh;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            gap: 6px;
+            padding: 10px;
+            background: #e2e8f0;
+        }
+        .picto-grid {
+            background: white;
+            border: 3px solid #94a3b8;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: relative;
+        }
+        .picto-grid:active { transform: scale(0.97); background: #f8fafc; }
+        .picto-grid img { width: 100%; height: 75%; object-fit: contain; }
+        .picto-grid span { font-size: 12px; font-weight: bold; margin-top: 2px; text-transform: uppercase; color: #1e293b; }
+
+        /* Indicador visual quan estem editant/esborrant caselles */
+        .modo-edicion-activo .picto-grid {
+            border-color: #eab308 !important;
+            animation: shake 0.3s infinite alternate;
+        }
+        @keyframes shake { 0% { transform: rotate(0.5deg); } 100% { transform: rotate(-0.5deg); } }
+
+        /* 3. Barra Inferior de Mòduls (10% Alçada) */
+        footer {
+            height: 10dvh;
+            background: #1e293b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .btn-footer {
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #0f766e;
+        }
+        .btn-footer:disabled { background: #475569; cursor: not-allowed; }
+
+        /* Finestra emergent de cerca (Modal) */
+        #modal-cerca {
+            display: none;
+            position: fixed;
+            top: 5%; left: 5%; width: 90%; height: 90%;
+            background: white; border: 3px solid #1e293b; border-radius: 12px;
+            z-index: 100; padding: 20px; flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        #resultats-cerca {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 10px;
+            overflow-y: auto;
+            margin-top: 15px;
+            flex-grow: 1;
+            padding: 5px;
+        }
     </style>
 </head>
 <body>
 
-    <div id="tira-comunicacio">
-        <div id="tira-elements" style="display: flex; gap: 10px;"></div>
+    <header id="tira-comunicacio">
+        <div id="tira-elements"></div>
         <div class="controls-tira">
-            <button onclick="esborrarUltim()">← Eliminar</button>
-            <button onclick="netejarTira()">X Netejar</button>
-            <button id="btn-llegir" onclick="parlarTira()">🗣️ LLEGIR</button>
+            <button id="btn-eliminar" class="btn-accio" onclick="esborrarUltim()">⌫</button>
+            <button id="btn-netejar" class="btn-accio" onclick="netejarTira()">Esborrar Tot</button>
+            <button id="btn-llegir" class="btn-accio" onclick="parlarTira()">🔊 Escuitar</button>
         </div>
-    </div>
+    </header>
 
-    <div id="quadricula">
-        <div class="picto-grid" onclick="afegirATira('Jo', 'https://api.arasaac.org/api/pictograms/2344')" data-paraula="Jo">
-            <img src="https://api.arasaac.org/api/pictograms/2344" alt="Jo">
-            <span>Jo</span>
-        </div>
-        <div class="picto-grid" onclick="afegirATira('Vull', 'https://api.arasaac.org/api/pictograms/2348')" data-paraula="Vull">
-            <img src="https://api.arasaac.org/api/pictograms/2348" alt="Vull">
-            <span>Vull</span>
-        </div>
-        <div class="picto-grid" onclick="afegirATira('Aigua', 'https://api.arasaac.org/api/pictograms/6351')" data-paraula="Aigua">
-            <img src="https://api.arasaac.org/api/pictograms/6351" alt="Aigua">
-            <span>Aigua</span>
-        </div>
-        </div>
+    <main id="quadricula"></main>
 
     <footer>
-        <div id="arasaac-search">
-            <button onclick="alert('Aquí llançaries el modal de cerca a l\'API si navigator.onLine és true')">🔍 Cercador ARASAAC (Online)</button>
-        </div>
-        <div id="modul-edicio">
-            <button style="background: #6c757d;">⚙️ Mòdul Edició</button>
-        </div>
+        <button id="btn-obrir-cerca" class="btn-footer" onclick="obrirModalCerca()">🔍 Buscar Pictograma (Online)</button>
+        <button class="btn-footer" style="background: #4b5563;" onclick="alternarModeEdicio(this)">⚙️ Edició</button>
     </footer>
 
-    <script>
-        let frase = [];
+    <div id="modal-cerca">
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="input-cercar" placeholder="Escriu una paraula en català..." style="flex-grow:1; padding:10px; font-size:16px; border:2px solid #ccc; border-radius:6px;">
+            <button onclick="executarCercaARASAAC()" style="padding:10px 20px; font-weight:bold; background:#0f766e; color:white; border:none; border-radius:6px; cursor:pointer;">Cercar</button>
+            <button onclick="tancarModalCerca()" style="padding:10px 15px; background:#dc2626; color:white; border:none; border-radius:6px; cursor:pointer;">X</button>
+        </div>
+        <div id="resultats-cerca"></div>
+    </div>
 
-        function afegirATira(paraula, imgUrl) {
-            frase.push(paraula);
-            const tira = document.getElementById('tira-elements');
-            const pictoDiv = document.createElement('div');
-            pictoDiv.className = 'picto-tira';
-            pictoDiv.innerHTML = `<img src="${imgUrl}"><span>${paraula}</span>`;
-            tira.appendChild(pictoDiv);
+    <script>
+        // S'ha canviat el nom de la base de dades per forçar les tauletes a utilitzar la nova estructura neta
+        const db = new Dexie("InSTAB_DB_v3");
+        db.version(1).stores({
+            pictogrames: 'posicio' // Clau primària 'posicio' (1-36) per poder sobrescriure i esborrar fàcilment
+        });
+
+        let fraseText = [];
+        let modeEdicio = false;
+
+        // Activar Service Worker per al mode Offline
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.error(err));
+            });
         }
 
-        function netejarTira() {
-            frase = [];
-            document.getElementById('tira-elements').innerHTML = '';
+        // Control de connexió a internet per bloquejar o activar el botó de l'API d'ARASAAC
+        function actualitzarEstatXarxa() {
+            document.getElementById('btn-obrir-cerca').disabled = !navigator.onLine;
+        }
+        window.addEventListener('online', actualitzarEstatXarxa);
+        window.addEventListener('offline', actualitzarEstatXarxa);
+        actualitzarEstatXarxa();
+
+        // Dibuixar la quadrícula a la pantalla llegint Dexie
+        async function carregarQuadricula() {
+            const contenidor = document.getElementById('quadricula');
+            contenidor.innerHTML = '';
+            
+            for (let i = 1; i <= 36; i++) {
+                const picto = await db.pictogrames.get(i);
+                const div = document.createElement('div');
+                div.className = 'picto-grid';
+                
+                if (picto) {
+                    const urlImatgeLocal = URL.createObjectURL(picto.imatgeBlob);
+                    div.innerHTML = `<img src="${urlImatgeLocal}"><span>${picto.paraula}</span>`;
+                    
+                    div.onclick = () => {
+                        if (modeEdicio) {
+                            if (confirm(`Vols esborrar el pictograma "${picto.paraula}" de la casella ${i}?`)) {
+                                db.pictogrames.delete(i).then(() => carregarQuadricula());
+                            }
+                        } else {
+                            afegirATira(picto.paraula, urlImatgeLocal);
+                        }
+                    };
+                } else {
+                    div.style.background = '#f8fafc';
+                    div.style.border = '2px dashed #cbd5e1';
+                    div.innerHTML = `<span style="color:#94a3b8; font-size:11px;">Buit (${i})</span>`;
+                    
+                    div.onclick = () => {
+                        if (modeEdicio) alert(`Aquesta casella està buida. Obre el cercador d'ARASAAC per afegir-ne un aquí.`);
+                    };
+                }
+                contenidor.appendChild(div);
+            }
+        }
+
+        // Activar/Desactivar el mode eliminar caselles
+        function alternarModeEdicio(boto) {
+            modeEdicio = !modeEdicio;
+            const quadricula = document.getElementById('quadricula');
+            if (modeEdicio) {
+                boto.style.background = "#eab308";
+                boto.innerText = "💥 Sortir d'Edició";
+                quadricula.classList.add('modo-edicion-activo');
+            } else {
+                boto.style.background = "#4b5563";
+                boto.innerText = "⚙️ Edició";
+                quadricula.classList.remove('modo-edicion-activo');
+            }
+        }
+
+        function afegirATira(paraula, urlImg) {
+            fraseText.push(paraula);
+            const tira = document.getElementById('tira-elements');
+            const div = document.createElement('div');
+            div.className = 'picto-tira';
+            div.innerHTML = `<img src="${urlImg}"><span>${paraula}</span>`;
+            tira.appendChild(div);
+            tira.scrollLeft = tira.scrollWidth;
         }
 
         function esborrarUltim() {
-            frase.pop();
+            fraseText.pop();
             const tira = document.getElementById('tira-elements');
             if (tira.lastChild) tira.removeChild(tira.lastChild);
         }
 
+        function netejarTira() {
+            fraseText = [];
+            document.getElementById('tira-elements').innerHTML = '';
+        }
+
         function parlarTira() {
-            if (frase.length === 0) return;
-            const textAUtilitzar = frase.join(" ");
-            const tts = new SpeechSynthesisUtterance(textAUtilitzar);
-            tts.lang = 'ca-ES'; // O idiomes configurats de la tablet
+            if (fraseText.length === 0) return;
+            const textFrase = fraseText.join(" ");
+            const tts = new SpeechSynthesisUtterance(textFrase);
+            tts.lang = 'ca-ES';
             window.speechSynthesis.speak(tts);
         }
+
+        function obrirModalCerca() { document.getElementById('modal-cerca').style.display = 'flex'; }
+        function tancarModalCerca() { document.getElementById('modal-cerca').style.display = 'none'; }
+
+        // Connexió amb ARASAAC (només online)
+        async function executarCercaARASAAC() {
+            const text = document.getElementById('input-cercar').value.trim();
+            if (!text) return;
+            const resContenidor = document.getElementById('resultats-cerca');
+            resContenidor.innerHTML = 'Cercant a ARASAAC...';
+
+            try {
+                const response = await fetch(`https://api.arasaac.org/api/pictograms/ca/search/${text}`);
+                if (!response.ok) throw new Error();
+                const dades = await response.json();
+                resContenidor.innerHTML = '';
+
+                dades.forEach(item => {
+                    const idPicto = item.idImg;
+                    const paraulaPicto = item.keywords[0]?.keyword || text;
+                    const urlImatgeAPI = `https://api.arasaac.org/api/pictograms/${idPicto}`;
+
+                    const divResultat = document.createElement('div');
+                    divResultat.style = "border:1px solid #cbd5e1; padding:5px; text-align:center; cursor:pointer; background:#ffffff; border-radius:6px;";
+                    divResultat.innerHTML = `<img src="${urlImatgeAPI}" style="width:100%; height:50px; object-fit:contain;"><br><span style="font-size:10px; font-weight:bold;">${paraulaPicto}</span>`;
+                    
+                    divResultat.onclick = () => assignarAPosicio(idPicto, paraulaPicto, urlImatgeAPI);
+                    resContenidor.appendChild(divResultat);
+                });
+            } catch (err) {
+                resContenidor.innerHTML = 'No s\'han trobat resultats.';
+            }
+        }
+
+        // Assignar el pictograma triat i descarregar la imatge a la Base de Dades local (Blob)
+        async function assignarAPosicio(id, paraula, url) {
+            const pos = prompt("A quina posició de la quadrícula el vols desar? (Tria un número del 1 al 36):");
+            const posInt = parseInt(pos);
+            if (isNaN(posInt) || posInt < 1 || posInt > 36) {
+                alert("Posició invàlida. Escriu un número de l'1 al 36.");
+                return;
+            }
+
+            try {
+                const imgRes = await fetch(url);
+                const blob = await imgRes.blob();
+
+                // En utilitzar '.put()', si la casella ja té un pictograma, el sobreescriu automàticament
+                await db.pictogrames.put({
+                    posicio: posInt,
+                    id: id,
+                    paraula: paraula,
+                    imatgeBlob: blob
+                });
+
+                alert(`Casella ${posInt} guardada correctament.`);
+                tancarModalCerca();
+                carregarQuadricula();
+            } catch (error) {
+                alert("Error desant el fitxer de la imatge localment.");
+            }
+        }
+
+        window.onload = carregarQuadricula;
     </script>
 </body>
 </html>
