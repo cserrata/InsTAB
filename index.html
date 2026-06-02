@@ -19,7 +19,7 @@
             padding-top: env(safe-area-inset-top);
         }
 
-        /* 1. TIRA SUPERIOR DE FRASES */
+        /* TIRA DE COMUNICACIÓ SUPERIOR (18dvh) */
         #tira-comunicacio {
             height: 18dvh;
             background: #ffffff;
@@ -39,7 +39,6 @@
         }
         .picto-tira {
             width: 80px;
-            min-width: 80px;
             height: 80px;
             background: #f8fafc;
             border: 2px solid #94a3b8;
@@ -49,25 +48,9 @@
             align-items: center;
             justify-content: center;
             padding: 4px;
-            position: relative;
         }
         .picto-tira img { width: 100%; height: 70%; object-fit: contain; }
         .picto-tira span { font-size: 9px; font-weight: bold; margin-top: 2px; text-transform: uppercase; }
-        .picto-tira-remove {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 20px;
-            height: 20px;
-            background: #dc2626;
-            color: white;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            font-size: 12px;
-            display: none;
-        }
-        #tira-comunicacio.tira-editable .picto-tira-remove { display: block; }
 
         .controls-tira { display: flex; gap: 8px; height: 90%; align-items: center; }
         .btn-accio {
@@ -79,15 +62,12 @@
             border-radius: 8px;
             border: none;
             color: white;
-            transition: all 0.2s ease;
         }
-        .btn-accio:active { transform: scale(0.95); }
         #btn-eliminar { background: #ea580c; }
         #btn-netejar { background: #dc2626; }
         #btn-llegir { background: #16a34a; font-size: 18px; padding: 0 25px; }
-        #btn-llegir:disabled { background: #94a3b8; cursor: not-allowed; }
 
-        /* 2. QUADRÍCULA CENTRAL 6x6 */
+        /* QUADRÍCULA CENTRAL 6x6 (72dvh) */
         #quadricula {
             height: 72dvh;
             display: grid;
@@ -96,7 +76,6 @@
             gap: 6px;
             padding: 10px;
             background: #e2e8f0;
-            overflow: hidden;
         }
         .picto-grid {
             background: white;
@@ -110,40 +89,19 @@
             padding: 4px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             position: relative;
-            transition: all 0.2s ease;
         }
         .picto-grid:active { transform: scale(0.97); background: #f8fafc; }
         .picto-grid img { width: 100%; height: 75%; object-fit: contain; }
-        .picto-grid span { 
-            font-size: 11px; 
-            font-weight: bold; 
-            margin-top: 2px; 
-            text-transform: uppercase; 
-            color: #1e293b; 
-            text-align: center;
-            word-break: break-word;
-        }
+        .picto-grid span { font-size: 11px; font-weight: bold; margin-top: 2px; text-transform: uppercase; color: #1e293b; text-align: center; }
 
-        /* Efecte de vibració en edició */
+        /* Efecte visual en mode edició */
         .modo-edicion-activo .picto-grid {
             border-color: #eab308 !important;
             animation: shake 0.3s infinite alternate;
         }
         @keyframes shake { 0% { transform: rotate(0.5deg); } 100% { transform: rotate(-0.5deg); } }
 
-        /* Estat de carregament */
-        .picto-grid.loading {
-            background: #f0f4f8;
-            border: 3px dashed #94a3b8;
-        }
-        .picto-grid.loading::after {
-            content: "⟳";
-            font-size: 24px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* 3. BARRA INFERIOR */
+        /* BARRA INFERIOR (10dvh) */
         footer {
             height: 10dvh;
             background: #1e293b;
@@ -152,8 +110,6 @@
             align-items: center;
             padding: 0 20px;
             padding-bottom: env(safe-area-inset-bottom);
-            gap: 10px;
-            flex-wrap: wrap;
         }
         .btn-footer {
             padding: 12px 20px;
@@ -164,10 +120,7 @@
             border-radius: 6px;
             cursor: pointer;
             background: #0f766e;
-            transition: all 0.2s ease;
         }
-        .btn-footer:hover:not(:disabled) { background: #0d5a5a; }
-        .btn-footer:disabled { background: #475569; cursor: not-allowed; opacity: 0.6; }
 
         /* FINESTRA MODAL DE CERCA */
         #modal-cerca {
@@ -178,27 +131,12 @@
             z-index: 100; padding: 20px; flex-direction: column;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
-        #modal-cerca.visible { display: flex; }
-        
-        .modal-header {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        #input-cercar {
-            flex-grow: 1;
-            padding: 12px;
-            font-size: 16px;
-            border: 2px solid #cbd5e1;
-            border-radius: 6px;
-        }
-        #input-cercar:focus { outline: none; border-color: #0f766e; }
-
         #resultats-cerca {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
             gap: 12px;
             overflow-y: auto;
+            margin-top: 15px;
             flex-grow: 1;
             padding: 5px;
         }
@@ -213,90 +151,10 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
-            min-height: 120px;
         }
         .item-resultat:hover { border-color: #0f766e; background: #f0fdfa; }
-        .item-resultat img { 
-            width: 100%; 
-            height: 60px; 
-            object-fit: contain;
-            max-width: 100px;
-        }
-        .item-resultat span { 
-            font-size: 11px; 
-            font-weight: bold; 
-            margin-top: 4px; 
-            color: #334155;
-            word-break: break-word;
-        }
-
-        /* Modal per seleccionar posició */
-        #modal-posicio {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            border: 3px solid #1e293b;
-            border-radius: 12px;
-            padding: 30px;
-            z-index: 200;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            text-align: center;
-        }
-        #modal-posicio.visible { display: block; }
-        #modal-posicio h3 { margin-bottom: 20px; color: #1e293b; }
-
-        #selector-caselles {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .btn-casella {
-            padding: 15px;
-            font-size: 14px;
-            font-weight: bold;
-            border: 2px solid #cbd5e1;
-            border-radius: 6px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .btn-casella:hover { border-color: #0f766e; background: #f0fdfa; }
-        .btn-casella.selected { background: #0f766e; color: white; border-color: #0f766e; }
-
-        #modal-posicio-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        /* Overlay */
-        #overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 99;
-        }
-        #overlay.visible { display: block; }
-
-        /* Carregant */
-        .loading-text {
-            font-size: 16px;
-            padding: 10px;
-            text-align: center;
-            color: #475569;
-        }
+        .item-resultat img { width: 100%; height: 60px; object-fit: contain; }
+        .item-resultat span { font-size: 11px; font-weight: bold; margin-top: 4px; color: #334155; }
     </style>
 </head>
 <body>
@@ -304,77 +162,45 @@
     <header id="tira-comunicacio">
         <div id="tira-elements"></div>
         <div class="controls-tira">
-            <button id="btn-eliminar" class="btn-accio" onclick="esborrarUltim()" title="Esborrar última paraula">⌫</button>
-            <button id="btn-netejar" class="btn-accio" onclick="netejarTira()" title="Netejar tot">Netejar</button>
-            <button id="btn-llegir" class="btn-accio" onclick="parlarTira()" title="Escoltar la frase">🔊 Escoltar</button>
+            <button id="btn-eliminar" class="btn-accio" onclick="esborrarUltim()">⌫</button>
+            <button id="btn-netejar" class="btn-accio" onclick="netejarTira()">Netejar</button>
+            <button id="btn-llegir" class="btn-accio" onclick="parlarTira()">🔊 Escoltar</button>
         </div>
     </header>
 
     <main id="quadricula"></main>
 
     <footer>
-        <button id="btn-obrir-cerca" class="btn-footer" onclick="obrirModalCerca()">🔍 Buscar Pictograma</button>
-        <button id="btn-toggle-edicio" class="btn-footer" style="background: #4b5563;" onclick="alternarModeEdicio(this)">⚙️ Mode Edició</button>
+        <button id="btn-obrir-cerca" class="btn-footer" onclick="obrirModalCerca()">🔍 Buscar Pictograma (Online)</button>
+        <button id="btn-toggle-edicio" class="btn-footer" style="background: #4b5563;" onclick="alternarModeEdicio(this)">⚙️ Edició</button>
     </footer>
 
-    <!-- Modal de cerca -->
     <div id="modal-cerca">
-        <div class="modal-header">
-            <input type="text" id="input-cercar" placeholder="Escriu una paraula..." onkeypress="if(event.key === 'Enter') executarCercaARASAAC()">
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="input-cercar" placeholder="Escriu una paraula a cercar..." style="flex-grow:1; padding:12px; font-size:16px; border:2px solid #cbd5e1; border-radius:6px;" onkeypress="if(event.key === 'Enter') executarCercaARASAAC()">
             <button onclick="executarCercaARASAAC()" style="padding:10px 25px; font-weight:bold; background:#0f766e; color:white; border:none; border-radius:6px; cursor:pointer; font-size:16px;">Cercar</button>
-            <button onclick="tancarModalCerca()" style="padding:10px 20px; background:#dc2626; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold; font-size:16px;">✕</button>
+            <button onclick="tancarModalCerca()" style="padding:10px 20px; background:#dc2626; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold; font-size:16px;">X</button>
         </div>
         <div id="resultats-cerca"></div>
     </div>
 
-    <!-- Modal de seleccio de posició -->
-    <div id="modal-posicio">
-        <h3>Selecciona una casella (1-36)</h3>
-        <div id="selector-caselles"></div>
-        <div id="modal-posicio-buttons">
-            <button onclick="confirmarPosicio()" style="padding:10px 25px; font-weight:bold; background:#16a34a; color:white; border:none; border-radius:6px; cursor:pointer;">Confirmar</button>
-            <button onclick="cancelarPosicio()" style="padding:10px 25px; background:#dc2626; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">Cancelar</button>
-        </div>
-    </div>
-
-    <!-- Overlay -->
-    <div id="overlay"></div>
-
     <script>
-        // Base de dades
-        const db = new Dexie("InSTAB_Base_Definitiva_v7");
+        // Nova instància optimitzada per a IDs de l'API
+        const db = new Dexie("InSTAB_Dades_API_v7");
         db.version(1).stores({
             pictogrames: 'posicio'
         });
 
         let fraseText = [];
         let modeEdicio = false;
-        let selectedPictogram = null;
-        let selectedPosition = null;
 
-        // Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js').catch(err => console.error(err));
             });
         }
 
-        // Actualitzar estat de xarxa
-        function actualitzarEstatXarxa() {
-            const btnCerca = document.getElementById('btn-obrir-cerca');
-            if (navigator.onLine) {
-                btnCerca.disabled = false;
-                btnCerca.innerText = "🔍 Buscar Pictograma (Online)";
-            } else {
-                btnCerca.disabled = true;
-                btnCerca.innerText = "🔒 Cercador bloquejat (Offline)";
-            }
-        }
-        window.addEventListener('online', actualitzarEstatXarxa);
-        window.addEventListener('offline', actualitzarEstatXarxa);
-        actualitzarEstatXarxa();
-
-        // Carregar la quadrícula
+        // Carregar la quadrícula generant les imatges estàtiques directament pel seu ID
         async function carregarQuadricula() {
             const contenidor = document.getElementById('quadricula');
             contenidor.innerHTML = '';
@@ -383,52 +209,44 @@
                 const picto = await db.pictogrames.get(i);
                 const div = document.createElement('div');
                 div.className = 'picto-grid';
-                div.dataset.posicio = i;
                 
                 if (picto) {
-                    div.innerHTML = `<img src="${picto.imatgeBase64}" alt="${picto.paraula}"><span>${picto.paraula}</span>`;
-                    div.onclick = () => manejarClickPicto(picto, i, div);
+                    // Generem la ruta directa d'imatge que el navegador processa sense restriccions
+                    const urlImatge = `https://static.arasaac.org/pictograms/${picto.idImg}/${picto.idImg}_300.png`;
+                    div.innerHTML = `<img src="${urlImatge}"><span>${picto.paraula}</span>`;
+                    
+                    div.onclick = () => {
+                        if (modeEdicio) {
+                            if (confirm(`Vols esborrar el pictograma "${picto.paraula}" de la casella ${i}?`)) {
+                                db.pictogrames.delete(i).then(() => carregarQuadricula());
+                            }
+                        } else {
+                            afegirATira(picto.paraula, urlImatge);
+                        }
+                    };
                 } else {
                     div.style.background = '#f8fafc';
                     div.style.border = '2px dashed #cbd5e1';
-                    div.innerHTML = `<span style="color:#94a3b8; font-size:12px;">+<br>(${i})</span>`;
-                    div.onclick = () => manejarClickPicto(null, i, div);
+                    div.innerHTML = `<span style="color:#94a3b8; font-size:12px;">Buit (${i})</span>`;
+                    div.onclick = () => {
+                        if (modeEdicio) alert("Obre el cercador inferior per assignar un pictograma.");
+                    };
                 }
                 contenidor.appendChild(div);
-            }
-        }
-
-        function manejarClickPicto(picto, posicio, element) {
-            if (modeEdicio) {
-                if (picto) {
-                    if (confirm(`Vols esborrar "${picto.paraula}" de la casella ${posicio}?`)) {
-                        db.pictogrames.delete(posicio).then(() => carregarQuadricula());
-                    }
-                } else {
-                    obrirModalCerca();
-                }
-            } else {
-                if (picto) {
-                    afegirATira(picto.paraula, picto.imatgeBase64);
-                }
             }
         }
 
         function alternarModeEdicio(boto) {
             modeEdicio = !modeEdicio;
             const quadricula = document.getElementById('quadricula');
-            const tira = document.getElementById('tira-comunicacio');
-            
             if (modeEdicio) {
                 boto.style.background = "#eab308";
                 boto.innerText = "💥 Sortir d'Edició";
                 quadricula.classList.add('modo-edicion-activo');
-                tira.classList.add('tira-editable');
             } else {
                 boto.style.background = "#4b5563";
-                boto.innerText = "⚙️ Mode Edició";
+                boto.innerText = "⚙️ Edició";
                 quadricula.classList.remove('modo-edicion-activo');
-                tira.classList.remove('tira-editable');
             }
         }
 
@@ -437,25 +255,12 @@
             const tira = document.getElementById('tira-elements');
             const div = document.createElement('div');
             div.className = 'picto-tira';
-            
-            const btn = document.createElement('button');
-            btn.className = 'picto-tira-remove';
-            btn.innerText = '✕';
-            btn.onclick = (e) => {
-                e.stopPropagation();
-                const idx = Array.from(tira.children).indexOf(div);
-                fraseText.splice(idx, 1);
-                tira.removeChild(div);
-            };
-            
-            div.innerHTML = `<img src="${srcImg}" alt="${paraula}"><span>${paraula}</span>`;
-            div.appendChild(btn);
+            div.innerHTML = `<img src="${srcImg}"><span>${paraula}</span>`;
             tira.appendChild(div);
             tira.scrollLeft = tira.scrollWidth;
         }
 
         function esborrarUltim() {
-            if (fraseText.length === 0) return;
             fraseText.pop();
             const tira = document.getElementById('tira-elements');
             if (tira.lastChild) tira.removeChild(tira.lastChild);
@@ -467,180 +272,76 @@
         }
 
         function parlarTira() {
-            if (fraseText.length === 0) {
-                alert("No hi ha paraules per escoltar.");
-                return;
-            }
+            if (fraseText.length === 0) return;
             const textFrase = fraseText.join(" ");
             const tts = new SpeechSynthesisUtterance(textFrase);
             tts.lang = 'ca-ES';
-            tts.rate = 0.9;
-            tts.pitch = 1.0;
-            window.speechSynthesis.cancel();
             window.speechSynthesis.speak(tts);
         }
 
-        function obrirModalCerca() { 
-            document.getElementById('modal-cerca').classList.add('visible');
-            document.getElementById('overlay').classList.add('visible');
-            document.getElementById('input-cercar').focus();
-        }
-
+        function obrirModalCerca() { document.getElementById('modal-cerca').style.display = 'flex'; }
         function tancarModalCerca() { 
-            document.getElementById('modal-cerca').classList.remove('visible');
-            document.getElementById('overlay').classList.remove('visible');
+            document.getElementById('modal-cerca').style.display = 'none'; 
             document.getElementById('resultats-cerca').innerHTML = '';
             document.getElementById('input-cercar').value = '';
-            selectedPictogram = null;
         }
 
-        // Executar cerca a ARASAAC
+        // Cerca usant l'endpoint de text d'ARASAAC que retorna els IDs dels dibuixos
         async function executarCercaARASAAC() {
             const text = document.getElementById('input-cercar').value.trim();
             if (!text) return;
-            
             const resContenidor = document.getElementById('resultats-cerca');
-            resContenidor.innerHTML = '<div class="loading-text">⟳ Carregant pictogrames...</div>';
+            resContenidor.innerHTML = '<p style="font-size:16px; padding:10px;">Cercant a la base de dades d\'ARASAAC...</p>';
 
             try {
-                // Intentar primer amb la língua Catala (ca)
-                let response = await fetch(`https://api.arasaac.org/api/pictograms/ca/search/${encodeURIComponent(text)}`);
-                
-                // Si no hi ha resultats en català, intentar en espanyol
-                if (!response.ok || (await response.json()).length === 0) {
-                    response = await fetch(`https://api.arasaac.org/api/pictograms/es/search/${encodeURIComponent(text)}`);
-                }
-
+                const response = await fetch(`https://api.arasaac.org/api/pictograms/ca/search/${encodeURIComponent(text)}`);
+                if (!response.ok) throw new Error();
                 const dades = await response.json();
                 resContenidor.innerHTML = '';
 
-                if (!Array.isArray(dades) || dades.length === 0) {
-                    resContenidor.innerHTML = '<div class="loading-text" style="color:#dc2626;">❌ No s\'ha trobat cap pictograma.</div>';
+                if (dades.length === 0) {
+                    resContenidor.innerHTML = '<p style="font-size:16px; color:#dc2626; padding:10px;">Cap resultat trobat.</p>';
                     return;
                 }
 
-                dades.slice(0, 50).forEach(item => {
-                    const idPicto = item.idImg || item._id;
-                    const paraulaPicto = item.keywords?.[0]?.keyword || text;
-                    
+                dades.forEach(item => {
+                    const idPicto = item._id; // ID únic de la imatge dins d'ARASAAC
+                    const paraulaPicto = item.keywords[0]?.keyword || text;
+                    const urlVisual = `https://static.arasaac.org/pictograms/${idPicto}/${idPicto}_300.png`;
+
                     const divResultat = document.createElement('div');
                     divResultat.className = 'item-resultat';
+                    divResultat.innerHTML = `<img src="${urlVisual}"><span>${paraulaPicto}</span>`;
                     
-                    // Ús d'una tècnica de fallback per carregació d'imatges
-                    const img = document.createElement('img');
-                    img.src = `https://static.arasaac.org/pictograms/${idPicto}/${idPicto}_300.png`;
-                    img.alt = paraulaPicto;
-                    img.onerror = () => {
-                        // Fallback a resolució inferior si falla
-                        img.src = `https://static.arasaac.org/pictograms/${idPicto}/${idPicto}_200.png`;
-                        img.onerror = () => {
-                            img.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%23e2e8f0' width='100' height='100'/%3E%3Ctext x='50' y='50' text-anchor='middle' dy='.3em' fill='%23666'%3E?%3C/text%3E%3C/svg%3E`;
-                        };
-                    };
-                    
-                    const span = document.createElement('span');
-                    span.textContent = paraulaPicto;
-                    
-                    divResultat.appendChild(img);
-                    divResultat.appendChild(span);
-                    
-                    divResultat.onclick = () => seleccionarPictogram({
-                        paraula: paraulaPicto,
-                        url: img.src,
-                        idPicto: idPicto
-                    });
-                    
+                    // Al fer clic passem directament l'ID per estalviar-nos descàrregues conflictives
+                    divResultat.onclick = () => assignarAPosicio(idPicto, paraulaPicto);
                     resContenidor.appendChild(divResultat);
                 });
             } catch (err) {
-                console.error(err);
-                resContenidor.innerHTML = '<div class="loading-text" style="color:#dc2626;">⚠️ Error connectant amb ARASAAC. Comprova la connexió.</div>';
+                resContenidor.innerHTML = '<p style="font-size:16px; color:#dc2626; padding:10px;">Error carregant dades. Revisa la connexió.</p>';
             }
         }
 
-        function seleccionarPictogram(picto) {
-            selectedPictogram = picto;
-            obrirModalPosicio();
-        }
-
-        function obrirModalPosicio() {
-            const selector = document.getElementById('selector-caselles');
-            selector.innerHTML = '';
-            
-            for (let i = 1; i <= 36; i++) {
-                const btn = document.createElement('button');
-                btn.className = 'btn-casella';
-                btn.textContent = i;
-                btn.onclick = () => {
-                    document.querySelectorAll('.btn-casella').forEach(b => b.classList.remove('selected'));
-                    btn.classList.add('selected');
-                    selectedPosition = i;
-                };
-                selector.appendChild(btn);
-            }
-
-            document.getElementById('modal-posicio').classList.add('visible');
-            document.getElementById('overlay').classList.add('visible');
-        }
-
-        function confirmarPosicio() {
-            if (!selectedPosition) {
-                alert("Selecciona una casella.");
+        // Desa a la graella de forma instantània (Zero errors de xarxa o CORS)
+        async function assignarAPosicio(idImg, paraula) {
+            const pos = prompt("A quina casella del 1 al 36 el vols desar?");
+            const posInt = parseInt(pos);
+            if (isNaN(posInt) || posInt < 1 || posInt > 36) {
+                alert("Casella invàlida o acció cancel·lada.");
                 return;
             }
-            assignarAPosicio(selectedPictogram.paraula, selectedPictogram.url, selectedPosition);
-            cancelarPosicio();
+
+            // Guardem només l'estructura de dades (Text + ID)
+            await db.pictogrames.put({
+                posicio: posInt,
+                paraula: paraula,
+                idImg: idImg
+            });
+
+            alert(`Desat perfectament a la casella ${posInt}!`);
+            tancarModalCerca();
+            carregarQuadricula();
         }
-
-        function cancelarPosicio() {
-            document.getElementById('modal-posicio').classList.remove('visible');
-            document.getElementById('overlay').classList.remove('visible');
-            selectedPosition = null;
-        }
-
-        // Descarrega segura en Base64
-        async function assignarAPosicio(paraula, url, posicio) {
-            const element = document.querySelector(`[data-posicio="${posicio}"]`);
-            if (element) element.classList.add('loading');
-
-            try {
-                // Obtenir la imatge original (més alta resolució)
-                const urlAlta = url.replace('_300.png', '_500.png');
-                
-                let resposta = await fetch(urlAlta).catch(() => fetch(url));
-                if (!resposta.ok) resposta = await fetch(url);
-                
-                const blob = await resposta.blob();
-                
-                const lector = new FileReader();
-                lector.readAsDataURL(blob);
-                lector.onloadend = async function() {
-                    const base64data = lector.result;                
-
-                    await db.pictogrames.put({
-                        posicio: posicio,
-                        paraula: paraula,
-                        imatgeBase64: base64data
-                    });
-
-                    alert(`✓ Desat correctament a la casella ${posicio}!`);
-                    tancarModalCerca();
-                    carregarQuadricula();
-                };
-            } catch (error) {
-                console.error(error);
-                alert("⚠️ Error al processar la imatge. Prova una altra.");
-                if (element) element.classList.remove('loading');
-            }
-        }
-
-        // Tancar modals amb ESC
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                tancarModalCerca();
-                cancelarPosicio();
-            }
-        });
 
         window.onload = carregarQuadricula;
     </script>
