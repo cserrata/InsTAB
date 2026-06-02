@@ -1,45 +1,30 @@
-const CACHE_NAME = 'instab-cache-v2-neteja';
+const CACHE_NAME = 'instab-cache-v1';
 const ASSETS = [
-'./',
-'./index.html',
-'./manifest.json',
-'./dexie.min.js',
-'./icon.png'
+  '/InsTAB/',
+  '/InsTAB/index.html',
+  '/InsTAB/manifest.json',
+  'https://cdnjs.cloudflare.com/ajax/libs/dexie/3.2.4/dexie.min.js'
 ];
 
-// Instal·lació i forçat d'actualització immediata
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
+// Instal·lació del Service Worker i desat de fitxers bàsics
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => {
       return cache.addAll(ASSETS);
-    }).then(() => self.skipWaiting())
+    })
   );
 });
 
-// Neteja radical de memòries cau antigues per evitar bloquejos de base de dades
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
-  );
+// Activació del Service Worker
+self.addEventListener('activate', event => {
+  event.waitUntil(self.clients.claim());
 });
 
-// Intercepció de peticions de xarxa
-self.addEventListener('fetch', (e) => {
-  // Si la petició és per a l'API d'ARASAAC, no la guardis a la memòria cau local de l'App (necessita internet real)
-  if (e.request.url.includes('arasaac.org')) {
-    return fetch(e.request);
-  }
-  e.respondWith(
-    caches.match(e.request).then((cachedResponse) => {
-      return cachedResponse || fetch(e.request);
+// Escuita de peticions (Obligatori per a que Chrome el consideri PWA)
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request).then(response => {
+      return response || fetch(event.request);
     })
   );
 });
