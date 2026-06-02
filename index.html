@@ -185,8 +185,8 @@
     </div>
 
     <script>
-        // Nova instància optimitzada per a IDs de l'API
-        const db = new Dexie("InSTAB_Dades_API_v7");
+        // Canviem el nom de la base de dades a la V8 definitiva per trencar la memòria cau antiga
+        const db = new Dexie("InSTAB_Base_Neta_v8");
         db.version(1).stores({
             pictogrames: 'posicio'
         });
@@ -211,7 +211,6 @@
                 div.className = 'picto-grid';
                 
                 if (picto) {
-                    // Generem la ruta directa d'imatge que el navegador processa sense restriccions
                     const urlImatge = `https://static.arasaac.org/pictograms/${picto.idImg}/${picto.idImg}_300.png`;
                     div.innerHTML = `<img src="${urlImatge}"><span>${picto.paraula}</span>`;
                     
@@ -286,7 +285,6 @@
             document.getElementById('input-cercar').value = '';
         }
 
-        // Cerca usant l'endpoint de text d'ARASAAC que retorna els IDs dels dibuixos
         async function executarCercaARASAAC() {
             const text = document.getElementById('input-cercar').value.trim();
             if (!text) return;
@@ -305,7 +303,7 @@
                 }
 
                 dades.forEach(item => {
-                    const idPicto = item._id; // ID únic de la imatge dins d'ARASAAC
+                    const idPicto = item._id; 
                     const paraulaPicto = item.keywords[0]?.keyword || text;
                     const urlVisual = `https://static.arasaac.org/pictograms/${idPicto}/${idPicto}_300.png`;
 
@@ -313,7 +311,6 @@
                     divResultat.className = 'item-resultat';
                     divResultat.innerHTML = `<img src="${urlVisual}"><span>${paraulaPicto}</span>`;
                     
-                    // Al fer clic passem directament l'ID per estalviar-nos descàrregues conflictives
                     divResultat.onclick = () => assignarAPosicio(idPicto, paraulaPicto);
                     resContenidor.appendChild(divResultat);
                 });
@@ -322,7 +319,7 @@
             }
         }
 
-        // Desa a la graella de forma instantània (Zero errors de xarxa o CORS)
+        // CONTROL DE DESAT CRÍTIC: Amb rastreig d'errors actiu
         async function assignarAPosicio(idImg, paraula) {
             const pos = prompt("A quina casella del 1 al 36 el vols desar?");
             const posInt = parseInt(pos);
@@ -331,16 +328,20 @@
                 return;
             }
 
-            // Guardem només l'estructura de dades (Text + ID)
-            await db.pictogrames.put({
+            // Obliguem que l'escriptura es completi i es verifiqui abans de tancar
+            db.pictogrames.put({
                 posicio: posInt,
                 paraula: paraula,
                 idImg: idImg
+            }).then(() => {
+                // Si s'ha guardat bé, es llança això:
+                alert(`Desat perfectament a la casella ${posInt}!`);
+                tancarModalCerca();
+                carregarQuadricula();
+            }).catch((err) => {
+                // Si hi hagués cap problema amb la base de dades de la tauleta, sortiria aquest avís:
+                alert("Error de la base de dades local: " + err);
             });
-
-            alert(`Desat perfectament a la casella ${posInt}!`);
-            tancarModalCerca();
-            carregarQuadricula();
         }
 
         window.onload = carregarQuadricula;
