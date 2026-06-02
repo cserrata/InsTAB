@@ -171,8 +171,8 @@
     </div>
 
     <script>
-        // Primer de tot declarem la base de dades globalment perquè cap funció falli
-        const db = new Dexie("InSTAB_Graella_Fixada_v11");
+        // Modifiquem lleugerament el nom de la base de dades (v12) per forçar el navegador a crear-la neta sense bloquejos
+        const db = new Dexie("InSTAB_Graella_Neta_v12");
         db.version(1).stores({
             pictogrames: 'posicio'
         });
@@ -180,7 +180,7 @@
         let fraseText = [];
         let modeEsborrar = false;
 
-        // DIBUIX I CARREGA DE LA GRAELLA
+        // DIBUIX DE LA GRAELLA (Forçat per evitar pantalles buides)
         async function carregarQuadricula() {
             const contenidor = document.getElementById('quadricula');
             if (!contenidor) return;
@@ -190,11 +190,16 @@
                 const div = document.createElement('div');
                 div.className = 'picto-grid';
                 
-                try {
-                    const picto = await db.pictogrames.get(i);
-                    
+                // Mètode ultra-segur: Pintem la casella buida per defecte immediatament
+                forçarCasellaBuida(div, i);
+                contenidor.appendChild(div);
+
+                // Després intentem demanar de forma asíncrona si té contingut guardat
+                db.pictogrames.get(i).then(picto => {
                     if (picto && picto.idImg) {
                         const urlImatge = `https://static.arasaac.org/pictograms/${picto.idImg}/${picto.idImg}_300.png`;
+                        div.style.background = 'white';
+                        div.style.border = '3px solid #94a3b8';
                         div.innerHTML = `<img src="${urlImatge}"><span>${picto.paraula}</span>`;
                         div.onclick = () => {
                             if (modeEsborrar) {
@@ -205,13 +210,11 @@
                                 afegirATira(picto.paraula, urlImatge);
                             }
                         };
-                    } else {
-                        forçarCasellaBuida(div, i);
                     }
-                } catch (e) {
-                    forçarCasellaBuida(div, i);
-                }
-                contenidor.appendChild(div);
+                }).catch(err => {
+                    // Si hi hagués qualsevol error intern de Dexie, la casella es queda pintada com a buida en comptes de trencar la graella
+                    console.log("Casella gestionada de forma segura:", err);
+                });
             }
         }
 
