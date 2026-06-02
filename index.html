@@ -171,7 +171,7 @@
     </div>
 
     <script>
-        // Definim la base de dades globalment
+        // Inicialització global de Dexie
         const db = new Dexie("InSTAB_Graella_Fixada_v11");
         db.version(1).stores({
             pictogrames: 'posicio'
@@ -180,36 +180,46 @@
         let fraseText = [];
         let modeEdicio = false;
 
-        // DIBUIX DE LA GRAELLA (Ara ultra-segura sense conflictes de càrrega)
+        // DIBUIX DE LA GRAELLA (Ara és 100% immune als errors de Dexie)
         async function carregarQuadricula() {
             const contenidor = document.getElementById('quadricula');
             if (!contenidor) return;
             contenidor.innerHTML = '';
             
+            let totsElsPictos = [];
+            
+            try {
+                // Intentem agafar tots els elements de la base de dades de cop
+                totsElsPictos = await db.pictogrames.toArray();
+            } catch (e) {
+                // Si Dexie fallés o donés un ReferenceError, no tallem la funció.
+                // Es queda la llista buida i forcem que es pinti la quadrícula igualment!
+                console.error("Dexie no inicialitzat encara, forçant graella buida de seguretat.", e);
+            }
+
+            // Convertim la llista en un mapa ràpid per trobar-los fàcilment per posició
+            const mapaPictos = {};
+            totsElsPictos.forEach(p => { mapaPictos[p.posicio] = p; });
+            
             for (let i = 1; i <= 36; i++) {
                 const div = document.createElement('div');
                 div.className = 'picto-grid';
                 
-                try {
-                    // Esperem demanar a la base de dades de forma segura
-                    const picto = await db.pictogrames.get(i);
-                    
-                    if (picto && picto.idImg) {
-                        const urlImatge = `https://static.arasaac.org/pictograms/${picto.idImg}/${picto.idImg}_300.png`;
-                        div.innerHTML = `<img src="${urlImatge}"><span>${picto.paraula}</span>`;
-                        div.onclick = () => {
-                            if (modeEdicio) {
-                                if (confirm(`Esborrar casella ${i}?`)) {
-                                    db.pictogrames.delete(i).then(() => carregarQuadricula());
-                                }
-                            } else {
-                                afegirATira(picto.paraula, urlImatge);
+                const picto = mapaPictos[i];
+                
+                if (picto && picto.idImg) {
+                    const urlImatge = `https://static.arasaac.org/pictograms/${picto.idImg}/${picto.idImg}_300.png`;
+                    div.innerHTML = `<img src="${urlImatge}"><span>${picto.paraula}</span>`;
+                    div.onclick = () => {
+                        if (modeEdicio) {
+                            if (confirm(`Esborrar casella ${i}?`)) {
+                                db.pictogrames.delete(i).then(() => carregarQuadricula());
                             }
-                        };
-                    } else {
-                        forçarCasellaBuida(div, i);
-                    }
-                } catch (e) {
+                        } else {
+                            afegirATira(picto.paraula, urlImatge);
+                        }
+                    };
+                } else {
                     forçarCasellaBuida(div, i);
                 }
                 contenidor.appendChild(div);
@@ -334,16 +344,8 @@
             }
         }
 
-        // AMB AIXÒ OBLIGUEM EL NAVEGADOR A ESPERAR QUE TOT EL JAVASCRIPT ESTIGUI LLEST
-        // I EVITEM EL "ReferenceError" DE MANERA DEFINITIVA.
-        document.addEventListener("DOMContentLoaded", () => {
-            db.open().then(() => {
-                carregarQuadricula();
-            }).catch(err => {
-                console.error("Error inicialitzant DB:", err);
-                carregarQuadricula(); // El llança igualment en cas d'emergència
-            });
-        });
+        // Execució immediata i segura de la quadrícula quan el codi HTML està a punt
+        document.addEventListener("DOMContentLoaded", carregarQuadricula);
     </script>
 </body>
 </html>
