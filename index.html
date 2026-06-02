@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comunicador CAA</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; height: 100vh; display: flex; flex-direction: column; background: #f4f4f9; }
+        
+        /* Tira de comunicació superior */
+        #tira-comunicacio { height: 20vh; background: #fff; border-bottom: 3px solid #ccc; display: flex; align-items: center; padding: 10px; gap: 10px; overflow-x: auto; }
+        .picto-tira { width: 80px; height: 80px; border: 1px solid #ddd; text-align: center; font-size: 12px; }
+        .picto-tira img { width: 100%; height: 70%; object-fit: contain; }
+        
+        /* Botons d'acció de la tira */
+        .controls-tira { margin-left: auto; display: flex; gap: 10px; }
+        button { padding: 15px 20px; font-size: 16px; cursor: pointer; border-radius: 8px; border: none; background: #007bff; color: white; }
+        button#btn-llegir { background: #28a745; font-weight: bold; }
+
+        /* Quadrícula 6x6 */
+        #quadricula { display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(6, 1fr); gap: 8px; padding: 10px; flex-grow: 1; }
+        .picto-grid { background: white; border: 2px solid #bbb; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; text-align: center; padding: 5px; }
+        .picto-grid img { width: 70%; height: 70%; object-fit: contain; }
+
+        /* Barra inferior */
+        footer { height: 10vh; background: #ddd; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
+    </style>
+</head>
+<body>
+
+    <div id="tira-comunicacio">
+        <div id="tira-elements" style="display: flex; gap: 10px;"></div>
+        <div class="controls-tira">
+            <button onclick="esborrarUltim()">← Eliminar</button>
+            <button onclick="netejarTira()">X Netejar</button>
+            <button id="btn-llegir" onclick="parlarTira()">🗣️ LLEGIR</button>
+        </div>
+    </div>
+
+    <div id="quadricula">
+        <div class="picto-grid" onclick="afegirATira('Jo', 'https://api.arasaac.org/api/pictograms/2344')" data-paraula="Jo">
+            <img src="https://api.arasaac.org/api/pictograms/2344" alt="Jo">
+            <span>Jo</span>
+        </div>
+        <div class="picto-grid" onclick="afegirATira('Vull', 'https://api.arasaac.org/api/pictograms/2348')" data-paraula="Vull">
+            <img src="https://api.arasaac.org/api/pictograms/2348" alt="Vull">
+            <span>Vull</span>
+        </div>
+        <div class="picto-grid" onclick="afegirATira('Aigua', 'https://api.arasaac.org/api/pictograms/6351')" data-paraula="Aigua">
+            <img src="https://api.arasaac.org/api/pictograms/6351" alt="Aigua">
+            <span>Aigua</span>
+        </div>
+        </div>
+
+    <footer>
+        <div id="arasaac-search">
+            <button onclick="alert('Aquí llançaries el modal de cerca a l\'API si navigator.onLine és true')">🔍 Cercador ARASAAC (Online)</button>
+        </div>
+        <div id="modul-edicio">
+            <button style="background: #6c757d;">⚙️ Mòdul Edició</button>
+        </div>
+    </footer>
+
+    <script>
+        let frase = [];
+
+        function afegirATira(paraula, imgUrl) {
+            frase.push(paraula);
+            const tira = document.getElementById('tira-elements');
+            const pictoDiv = document.createElement('div');
+            pictoDiv.className = 'picto-tira';
+            pictoDiv.innerHTML = `<img src="${imgUrl}"><span>${paraula}</span>`;
+            tira.appendChild(pictoDiv);
+        }
+
+        function netejarTira() {
+            frase = [];
+            document.getElementById('tira-elements').innerHTML = '';
+        }
+
+        function esborrarUltim() {
+            frase.pop();
+            const tira = document.getElementById('tira-elements');
+            if (tira.lastChild) tira.removeChild(tira.lastChild);
+        }
+
+        function parlarTira() {
+            if (frase.length === 0) return;
+            const textAUtilitzar = frase.join(" ");
+            const tts = new SpeechSynthesisUtterance(textAUtilitzar);
+            tts.lang = 'ca-ES'; // O idiomes configurats de la tablet
+            window.speechSynthesis.speak(tts);
+        }
+    </script>
+</body>
+</html>
